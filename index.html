@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shigal's Picross</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <h1>welcome to shigal's picross</h1>
+    <div id="container">
+        <div id="left-panel">
+            <div id="game-wrapper">
+                <div id="game"></div>
+                <div id="overlay"></div>
+            </div>
+        </div>
+        <div id="right-panel">
+            <button id="playMusic">▶ music</button>
+            <div class="input-group">
+                <select id="puzzleSelect">
+                    <option value="easy">easy</option>
+                    <option value="medium">medium</option>
+                    <option value="hard">hard</option>
+                    <option value="expert">expert</option>
+                    <option value="sp-a">sp-a</option>
+                </select>
+                <button id="loadPuzzle">load</button>
+            </div>
+            <!-- <button id="undo">undo</button> -->
+        </div>
+    </div>
+    <h1 id="message"></h1>
+    <script src="script.js"></script>
+</body>
+
+</html>
