@@ -79,7 +79,7 @@ const winStyle = document.createElement('style');
 let isFromContextMenu = false;
 
 
-document.addEventListener('mouseup', (e) => {
+document.addEventListener('pointerup', (e) => {
     isMouseDown = false;
     gridValue = null;
     dragStart = null;
@@ -262,7 +262,7 @@ function renderClues(r, c, isHorizontal) {
 function addEventListeners(div, r, c) {
     div.addEventListener('mouseenter', (e) => handleCellMouseEnter(r, c, e));
     div.addEventListener('mouseleave', handleCellMouseLeave);
-    div.addEventListener('mousedown', (e) => handleCellMouseDown(r, c, e));
+    div.addEventListener('pointerdown', (e) => handleCellMouseDown(r, c, e));
     // div.addEventListener('contextmenu', function (e) {
     //     e.preventDefault();
     //     console.log('right click');
