@@ -75,8 +75,8 @@ let dragDirection = null; // 'horizontal' | 'vertical'
 let lastFilledCell = null;
 let lastR, lastC = null;
 let dragLock = true;
+let isMousePointer = null;
 const winStyle = document.createElement('style');
-let isFromContextMenu = false;
 
 
 document.addEventListener('pointerup', (e) => {
@@ -263,14 +263,13 @@ function addEventListeners(div, r, c) {
     div.addEventListener('mouseenter', (e) => handleCellMouseEnter(r, c, e));
     div.addEventListener('mouseleave', handleCellMouseLeave);
     div.addEventListener('pointerdown', (e) => handleCellMouseDown(r, c, e));
-    // div.addEventListener('contextmenu', function (e) {
-    //     e.preventDefault();
-    //     console.log('right click');
-    //     isFromContextMenu = true;
-    //     // handleCellMouseDown(r, c, e);
-    //     return false;
-    // }, false);
-    div.addEventListener('contextmenu', e => e.preventDefault()); // stop right click menu
+    div.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        console.log('right click');
+        handleMobileRightClick(r, c, e);
+        return false;
+    }, false);
+    // div.addEventListener('contextmenu', e => e.preventDefault()); // stop right click menu
 }
 
 function checkIfWinner() {
@@ -380,6 +379,7 @@ function stopAllSounds() {
 }
 
 function handleCellMouseDown(r, c, e) {
+    isMousePointer = e.pointerType === "mouse";
     if (winner == true) {
         return;
     }
@@ -393,6 +393,16 @@ function handleCellMouseDown(r, c, e) {
     dragStart = { r, c };
     dragDirection = null;
     toggleFill(r, c, cell);
+}
+
+//only runs if its a touch right click event
+function handleMobileRightClick(r, c, e) {
+    if (!isMousePointer) {
+        const cell = e.currentTarget;
+        console.log("its a touchscreen");
+        gridValue = grid[r][c] === 2 ? 0 : 2;
+        toggleFill(r, c, cell);
+    }
 }
 
 function handleCellMouseEnter(r, c, e) {
