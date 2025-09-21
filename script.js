@@ -76,15 +76,19 @@ let lastFilledCell = null;
 let lastR, lastC = null;
 let dragLock = true;
 const winStyle = document.createElement('style');
-let isFromContextMenu = false;
+let pressTimer;
+let isLongPress = false;
 
 
-document.addEventListener('mouseup', (e) => {
+document.addEventListener('pointerup', (e) => {
     isMouseDown = false;
     gridValue = null;
     dragStart = null;
     dragDirection = null;
     lastFilledCell = null;
+    if (e.pointerType === "touch") {
+        handleTouchEnd(e, r, c);
+    }
 });
 
 const sounds = {
@@ -262,11 +266,10 @@ function renderClues(r, c, isHorizontal) {
 function addEventListeners(div, r, c) {
     div.addEventListener('mouseenter', (e) => handleCellMouseEnter(r, c, e));
     div.addEventListener('mouseleave', handleCellMouseLeave);
-    div.addEventListener('mousedown', (e) => handleCellMouseDown(r, c, e));
+    div.addEventListener('pointerdown', (e) => handleCellMouseDown(r, c, e));
     div.addEventListener('contextmenu', function (e) {
         e.preventDefault();
         console.log('right click');
-        isFromContextMenu = true;
         // handleCellMouseDown(r, c, e);
         return false;
     }, false);
@@ -383,16 +386,36 @@ function handleCellMouseDown(r, c, e) {
     if (winner == true) {
         return;
     }
-    const cell = e.currentTarget;
-    isMouseDown = true;
-    if (e.button === 0) { // left click on tile
-        gridValue = grid[r][c] === 1 ? 0 : 1;
-    } else if (e.button === 2) { // right click on tile
-        gridValue = grid[r][c] === 2 ? 0 : 2;
+    if (e.pointerType === "mouse") {
+        const cell = e.currentTarget;
+        isMouseDown = true;
+        if (e.button === 0) { // left click on tile
+            gridValue = grid[r][c] === 1 ? 0 : 1;
+        } else if (e.button === 2) { // right click on tile
+            gridValue = grid[r][c] === 2 ? 0 : 2;
+        }
+        dragStart = { r, c };
+        dragDirection = null;
+        toggleFill(r, c, cell);
     }
-    dragStart = { r, c };
-    dragDirection = null;
-    toggleFill(r, c, cell);
+    else if (e.pointerType === "touch") {
+        isLongPress = false;
+        pressTimer = setTimeout(() => {
+            isLongPress = true;
+            const cell = e.currentTarget;
+            gridValue = grid[r][c] === 2 ? 0 : 2;
+            toggleFill(r, c, cell);
+        }, 500); // 500ms = long presshandleTouchStart(e, r, c, cell);
+    }
+}
+
+function handleTouchEnd(e, r, c) {
+    clearTimeout(pressTimer);
+    if (!isLongPress) {
+        const cell = e.currentTarget;
+        gridValue = grid[r][c] === 1 ? 0 : 1;
+        toggleFill(r, c, cell); // short tap = left click
+    }
 }
 
 function handleCellMouseEnter(r, c, e) {
@@ -461,6 +484,7 @@ function handleCellMouseLeave() {
     document.querySelectorAll('.highlight-row, .highlight-col')
         .forEach(el => el.classList.remove('highlight-row', 'highlight-col'));
 }
+
 
 function toggleFill(r, c, cell) {
     // console.log(grid);
