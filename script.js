@@ -86,9 +86,6 @@ document.addEventListener('pointerup', (e) => {
     dragStart = null;
     dragDirection = null;
     lastFilledCell = null;
-    if (e.pointerType === "touch") {
-        handleTouchEnd(e, r, c);
-    }
 });
 
 const sounds = {
@@ -380,36 +377,16 @@ function handleCellMouseDown(r, c, e) {
     if (winner == true) {
         return;
     }
-    // if (e.pointerType === "mouse") {
-        const cell = e.currentTarget;
-        isMouseDown = true;
-        if (e.button === 0) { // left click on tile
-            gridValue = grid[r][c] === 1 ? 0 : 1;
-        } else if (e.button === 2 && e.pointerType != "touch") { // right click on tile
-            gridValue = grid[r][c] === 2 ? 0 : 2;
-        }
-        dragStart = { r, c };
-        dragDirection = null;
-        toggleFill(r, c, cell);
-    // }
-    // else if (e.pointerType === "touch") {
-    //     isLongPress = false;
-    //     pressTimer = setTimeout(() => {
-    //         isLongPress = true;
-    //         const cell = e.currentTarget;
-    //         gridValue = grid[r][c] === 2 ? 0 : 2;
-    //         toggleFill(r, c, cell);
-    //     }, 500); // 500ms = long presshandleTouchStart(e, r, c, cell);
-    // }
-}
-
-function handleTouchEnd(e, r, c) {
-    clearTimeout(pressTimer);
-    // if (!isLongPress) {
-    //     const cell = e.currentTarget;
-    //     gridValue = grid[r][c] === 1 ? 0 : 1;
-    //     toggleFill(r, c, cell); // short tap = left click
-    // }
+    const cell = e.currentTarget;
+    isMouseDown = true;
+    if (e.button === 0) { // left click on tile
+        gridValue = grid[r][c] === 1 ? 0 : 1;
+    } else if (e.button === 2 && e.pointerType != "touch") { // right click on tile
+        gridValue = grid[r][c] === 2 ? 0 : 2;
+    }
+    dragStart = { r, c };
+    dragDirection = null;
+    toggleFill(r, c, cell);
 }
 
 function handleCellMouseEnter(r, c, e) {
