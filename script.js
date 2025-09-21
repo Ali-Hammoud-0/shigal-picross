@@ -4,25 +4,33 @@ let grid;
 let puzzleList;
 let puzzleAnswer;
 
-function loadPuzzleList() {
+function loadPuzzleList(isFirstLoad) {
+    puzzleList = [];
+    puzzleSelect.innerHTML = '';
     // import puzzle list
     fetch('puzzles/index.json')
         .then(response => response.json())
         .then(data => {
             puzzleList = data;
+            puzzleList.sort((a, b) => a[0] > b[0]);
+            console.log("selected: " + difficultySelect.value);
             console.log("puzzleList: " + puzzleList[1][0]);
             let puzzleSelect = document.getElementById("puzzleSelect");
             puzzleList.forEach((puzzle, i) => {
-                let newOption = document.createElement('option');
-                newOption.value = puzzle[0];
-                let puzzleName = puzzle[0].substring(0, puzzle[0].length - 5); //remove .json
-                if (puzzleName[0] == "0") {
-                    puzzleName = puzzleName.substring(1, puzzleName.length);
+                if (puzzle[2] == difficultySelect.value) {
+                    let newOption = document.createElement('option');
+                    newOption.value = puzzle[0];
+                    let puzzleName = puzzle[0].substring(0, puzzle[0].length - 5); //remove .json
+                    if (puzzleName[0] == "0") {
+                        puzzleName = puzzleName.substring(1, puzzleName.length);
+                    }
+                    newOption.text = puzzleName;
+                    puzzleSelect.appendChild(newOption);
                 }
-                newOption.text = puzzleName;
-                puzzleSelect.appendChild(newOption);
             });
-            loadPuzzle(puzzleList[0][0]);
+            if (isFirstLoad) {
+                loadPuzzle(puzzleList[0][0]);
+            }
         })
         .catch(err => console.error('Failed to load JSON:', err));
 }
@@ -51,7 +59,8 @@ function loadPuzzle(selectedPuzzle) {
         })
         .catch(err => console.error('Failed to load JSON:', err));
 }
-loadPuzzleList();
+loadPuzzleList(true);
+
 
 let numCluesPerCol = 0;
 let numCluesPerRow = 0;
@@ -67,6 +76,7 @@ let lastFilledCell = null;
 let lastR, lastC = null;
 let dragLock = true;
 const winStyle = document.createElement('style');
+let isFromContextMenu = false;
 
 
 document.addEventListener('mouseup', (e) => {
@@ -89,6 +99,7 @@ sounds.fill.load(); // start loading immediately
 
 document.addEventListener('DOMContentLoaded', () => {
     const playMusicBtn = document.getElementById('playMusic');
+    const difficultySelect = document.getElementById('difficultySelect');
     const puzzleSelect = document.getElementById('puzzleSelect');
     const loadPuzzleBtn = document.getElementById('loadPuzzle');
     const undoBtn = document.getElementById('undo');
@@ -96,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     playMusicBtn.addEventListener('click', () => {
         if (sounds.bgm1.paused) {
             // sounds.bgm1.currentTime = 0;
-            sounds.bgm1.loop =true;
+            sounds.bgm1.loop = true;
             sounds.bgm1.play();
             playMusicBtn.innerHTML = '⏹ music'
         }
@@ -108,10 +119,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     });
+    difficultySelect.addEventListener('change', () => {
+        console.log(difficultySelect.value);
+        console.log("oowee: " + puzzleSelect.value);
+        // loadPuzzle();
+        loadPuzzleList(false);
+
+
+    });
     loadPuzzleBtn.addEventListener('click', () => {
         console.log(puzzleSelect.value);
         loadPuzzle(puzzleSelect.value);
-        
+
     });
     // undoBtn.addEventListener('click', () => {
     //     undoMove();
@@ -244,7 +263,14 @@ function addEventListeners(div, r, c) {
     div.addEventListener('mouseenter', (e) => handleCellMouseEnter(r, c, e));
     div.addEventListener('mouseleave', handleCellMouseLeave);
     div.addEventListener('mousedown', (e) => handleCellMouseDown(r, c, e));
-    div.addEventListener('contextmenu', e => e.preventDefault()); // stop right click menu
+    div.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        console.log('right click');
+        isFromContextMenu = true;
+        // handleCellMouseDown(r, c, e);
+        return false;
+    }, false);
+    // div.addEventListener('contextmenu', e => e.preventDefault()); // stop right click menu
 }
 
 function checkIfWinner() {
@@ -296,7 +322,7 @@ function checkLine(i, isHorizontal) {
     let runs = lineString.match(/1+/g)?.map(run => run.length) || [];
     // check if it's a 0 clue first
     if (cluesArr[i][0][0] == 0) {
-        if(runs.length == 0) {
+        if (runs.length == 0) {
             return true;
         }
     }
