@@ -2,7 +2,7 @@ let cluesRow, cluesCol;
 let sizeX, sizeY;
 let grid;
 let puzzleList;
-let puzzleAnswer;
+let loadedPuzzle;
 
 function loadPuzzleList(isFirstLoad) {
     puzzleList = [];
@@ -13,8 +13,6 @@ function loadPuzzleList(isFirstLoad) {
         .then(data => {
             puzzleList = data;
             puzzleList.sort((a, b) => a[0] > b[0]);
-            console.log("selected: " + difficultySelect.value);
-            console.log("puzzleList: " + puzzleList[1][0]);
             let puzzleSelect = document.getElementById("puzzleSelect");
             puzzleList.forEach((puzzle, i) => {
                 if (puzzle[2] == difficultySelect.value) {
@@ -35,7 +33,8 @@ function loadPuzzleList(isFirstLoad) {
         .catch(err => console.error('Failed to load JSON:', err));
 }
 function loadPuzzle(selectedPuzzle) {
-    console.log("loading " + selectedPuzzle)
+    console.log("loading " + selectedPuzzle);
+    loadedPuzzle = selectedPuzzle;
     // import puzzle
     fetch('puzzles/' + selectedPuzzle)
         .then(response => response.json())
@@ -120,15 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
     difficultySelect.addEventListener('change', () => {
-        console.log(difficultySelect.value);
-        console.log("oowee: " + puzzleSelect.value);
+        console.log("selected " + difficultySelect.value);
         // loadPuzzle();
         loadPuzzleList(false);
 
 
     });
     loadPuzzleBtn.addEventListener('click', () => {
-        console.log(puzzleSelect.value);
         loadPuzzle(puzzleSelect.value);
 
     });
@@ -265,7 +262,7 @@ function addEventListeners(div, r, c) {
     div.addEventListener('pointerdown', (e) => handleCellMouseDown(r, c, e));
     div.addEventListener('contextmenu', function (e) {
         e.preventDefault();
-        console.log('right click');
+        // console.log('right click');
         handleMobileRightClick(r, c, e);
         return false;
     }, false);
@@ -274,8 +271,6 @@ function addEventListeners(div, r, c) {
 
 function checkIfWinner() {
     //check rows first, break if one does not match
-    console.log('numrows: ' + grid.length);
-    console.log('numcols: ' + grid[0].length);
     for (let r = 0; r < grid.length; r++) {
         console.log('Checking row ' + r)
         // if (!checkRow(r)) {
@@ -353,10 +348,16 @@ function winrar() {
   }
 `;
     document.head.appendChild(winStyle);
-
+    let answer = 'a winner is you :)';
+    puzzleList.forEach((puzzle, i) => {
+        if (puzzle[0] == loadedPuzzle) {
+            answer = puzzle[1];
+            console.log("answer: " + puzzle[1]);
+        }
+    });
     message.classList.add('winning-text');
     winner = true;
-    message.innerHTML = 'a winner is you :)'
+    message.innerHTML = answer;
 }
 
 function stopAllSounds() {
@@ -469,7 +470,6 @@ function handleCellMouseLeave() {
 function toggleFill(r, c, cell) {
     // console.log(grid);
     lastGrid = grid.slice();
-    console.log(grid);
     let rowToFill = r, colToFill = c;
     let isClue = cell.classList.contains('clue');
     if (cell.classList.contains('clue-empty')) {
@@ -488,13 +488,13 @@ function toggleFill(r, c, cell) {
             if (dragLock && dragDirection === 'horizontal') {
                 if (dragStart.c < lastC) {
                     for (let iC = dragStart.c; iC < lastC; iC++) {
-                        console.log("iR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
+                        // console.log("iR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
                         grid[dragStart.r][iC] = gridValue;
                     }
                 }
                 else {
                     for (let iC = dragStart.c; iC > lastC; iC--) {
-                        console.log("iR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
+                        // console.log("iR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
                         grid[dragStart.r][iC] = gridValue;
                     }
                 }
@@ -504,13 +504,13 @@ function toggleFill(r, c, cell) {
             else if (dragLock && dragDirection === 'vertical') {
                 if (dragStart.r < lastR) {
                     for (let iR = dragStart.r; iR < lastR; iR++) {
-                        console.log("iR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
+                        // console.log("iR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
                         grid[iR][dragStart.c] = gridValue;
                     }
                 }
                 else {
                     for (let iR = dragStart.r; iR > lastR; iR--) {
-                        console.log("iR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
+                        // console.log("iR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
                         grid[iR][dragStart.c] = gridValue;
                     }
                 }

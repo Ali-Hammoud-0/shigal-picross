@@ -120,7 +120,7 @@ select {
     position: relative;
     display: inline-block;
     /* shrink-wrap to #game size */
-    /* margin: 0.5rem auto; */
+    margin: 0.5rem auto;
     border-radius: 10px;
 
 }
