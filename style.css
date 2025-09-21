@@ -1,8 +1,9 @@
 body {
-    overflow-x: auto;       
+    /* overflow-x: auto; */
     display: flex;
     flex-direction: column;
-    align-items: center;    /* keep centered */
+    align-items: center;
+    /* keep centered */
     background: #201e1f;
     justify-content: center;
     font-family: "Courier New", Courier, monospace;
@@ -24,13 +25,16 @@ textarea {
 }
 
 #container {
+    /* overflow-x: auto; */
     display: flex;
     justify-content: center;
     align-items: stretch;
+    flex-shrink: 0;
+    /* don’t let flexbox squeeze it */
     /* min-height: 80vh; */
     gap: 2rem;
     color: #f0f0f0;
-    
+
 }
 
 #left-panel {
@@ -105,12 +109,15 @@ textarea {
 }
 
 #game-wrapper {
+    overflow-x: auto;
+    max-width: 100vw;
+    flex-shrink: 0;
     position: relative;
     display: inline-block;
     /* shrink-wrap to #game size */
     margin: 0.5rem auto;
     border-radius: 10px;
-    
+
 }
 
 #game {
@@ -118,7 +125,7 @@ textarea {
     --grid-size-y: 0;
     --cell-size: min(max(30px, calc(90vw / var(--grid-size-x))),
             max(30px, calc(70vh / var(--grid-size-y))));
-
+    --cell-size: 40px;
     display: grid;
     grid-template-columns: repeat(var(--grid-size-x), var(--cell-size));
     grid-template-rows: repeat(var(--grid-size-y), var(--cell-size));
@@ -128,26 +135,19 @@ textarea {
 }
 
 #overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
+    position: fixed;
+    inset: 0;              /* top:0; right:0; bottom:0; left:0; */
+    z-index: 9999;
     pointer-events: none;
-    border-radius: 10px;
-
-    /* scanline effect (optional) */
-    background-image: linear-gradient(to bottom,
-            rgba(0, 0, 0, 0.2) 0px,
-            rgba(0, 0, 0, 0.2) 1px,
-            transparent 1px,
-            transparent 4px);
+    background-image: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.2) 0px,
+      rgba(0,0,0,0.2) 1px,
+      transparent 1px,
+      transparent 4px
+    );
     background-size: 100% 4px;
-
-    /* Optional: semi-transparent overlay */
-    /* background-color: rgba(0, 0, 0, 0.1); */
-}
+  }
 
 .winning-text {
     animation:
@@ -283,12 +283,13 @@ textarea {
     background: #ddd;
     color: #333;
     font-size: calc(var(--cell-size) * 1.0);
-    
+
 }
 
 .cell.marked::before {
     content: "◈";
-    transform: translateY(calc(0.1 * var(--cell-size))); /* vertically center */
+    transform: translateY(calc(0.1 * var(--cell-size)));
+    /* vertically center */
     pointer-events: none;
 }
 
