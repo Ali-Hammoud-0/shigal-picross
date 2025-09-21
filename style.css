@@ -17,6 +17,10 @@ h1 {
     width: 100%;
 }
 
+#message {
+
+}
+
 button,
 select,
 input,
@@ -39,6 +43,7 @@ textarea {
 
 #left-panel {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     flex: 1;

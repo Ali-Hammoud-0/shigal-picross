@@ -341,9 +341,6 @@ function checkLine(i, isHorizontal) {
 
 function winrar() {
     // stopAllSounds();
-    let allElements = [];
-    let clues = document.getElementsByClassName('clue');
-    allElements.push(...clues);
     winStyle.innerHTML = `
   .clue {
     animation: glowGreen 2s infinite forwards !important;
@@ -357,9 +354,6 @@ function winrar() {
 `;
     document.head.appendChild(winStyle);
 
-    allElements.forEach(el => {
-        el.classList.add('clue');
-    });
     message.classList.add('winning-text');
     winner = true;
     message.innerHTML = 'a winner is you :)'
