@@ -81,16 +81,28 @@ textarea {
     width: 100%;
 }
 
-.input-group select {
+select {
     font-size: 1rem;
-    /* border: 1px solid #ccc; */
-    padding: 0.6rem 1rem;
+    /* padding: 0.6rem 1rem; */
     outline: none;
     height: 2.8rem;
     border-right: none;
     background-color: #f9f9f9;
     color: #333;
     width: 100%;
+}
+
+.input-group select {
+    /* padding: 0.6rem 1rem; */
+
+    /* font-size: 1rem;
+    padding: 0.6rem 1rem;
+    outline: none;
+    height: 2.8rem;
+    border-right: none;
+    background-color: #f9f9f9;
+    color: #333;
+    width: 100%; */
 
 }
 
@@ -123,9 +135,11 @@ textarea {
 #game {
     --grid-size-x: 0;
     --grid-size-y: 0;
-    --cell-size: min(max(30px, calc(90vw / var(--grid-size-x))),
-            max(30px, calc(70vh / var(--grid-size-y))));
-    --cell-size: 40px;
+    --cell-size: min(max(10px, calc(90vw / var(--grid-size-x))),
+            max(10px, calc(70vh / var(--grid-size-y))));
+    /* --cell-size: min(max(30px, calc(90vw / var(--grid-size-x))),
+            max(30px, calc(70vh / var(--grid-size-y)))); */
+    /* --cell-size: 40px; */
     display: grid;
     grid-template-columns: repeat(var(--grid-size-x), var(--cell-size));
     grid-template-rows: repeat(var(--grid-size-y), var(--cell-size));
@@ -146,7 +160,7 @@ textarea {
       transparent 1px,
       transparent 4px
     );
-    background-size: 100% 4px;
+    background-size: 100% 2px;
   }
 
 .winning-text {

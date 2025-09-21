@@ -1,7 +1,17 @@
 [
  [
+  "01-A.json",
+  "deserted island",
+  "easy"
+ ],
+ [
   "01-B.json",
-  "foot",
+  "sole of foot",
+  "easy"
+ ],
+ [
+  "01-C.json",
+  "bomb",
   "easy"
  ],
  [
@@ -10,8 +20,178 @@
   "easy"
  ],
  [
+  "01-E.json",
+  "cicada",
+  "easy"
+ ],
+ [
+  "01-F.json",
+  "mosquito coil",
+  "easy"
+ ],
+ [
+  "01-G.json",
+  "burglar",
+  "easy"
+ ],
+ [
+  "01-H.json",
+  "dog",
+  "easy"
+ ],
+ [
+  "01-I.json",
+  "king tut",
+  "medium"
+ ],
+ [
+  "01-J.json",
+  "dugout",
+  "medium"
+ ],
+ [
   "01-K.json",
   "parasol",
+  "medium"
+ ],
+ [
+  "01-L.json",
+  "full moon",
+  "medium"
+ ],
+ [
+  "02-A.json",
+  "orion",
+  "medium"
+ ],
+ [
+  "02-B.json",
+  "tetris",
+  "medium"
+ ],
+ [
+  "02-C.json",
+  "bird nest",
+  "medium"
+ ],
+ [
+  "02-D.json",
+  "novice driver sticker",
+  "medium"
+ ],
+ [
+  "02-E.json",
+  "moon landing",
+  "medium"
+ ],
+ [
+  "02-F.json",
+  "emergency exit",
+  "medium"
+ ],
+ [
+  "02-G.json",
+  "africa",
+  "medium"
+ ],
+ [
+  "02-H.json",
+  "daruma doll",
+  "medium"
+ ],
+ [
+  "02-I.json",
+  "ricefish",
+  "medium"
+ ],
+ [
+  "02-J.json",
+  "pop-eyed goldfish",
+  "medium"
+ ],
+ [
+  "02-K.json",
+  "classic delinquent",
+  "medium"
+ ],
+ [
+  "02-L.json",
+  "koro's dog house",
+  "medium"
+ ],
+ [
+  "03-A.json",
+  "fugu",
+  "medium"
+ ],
+ [
+  "03-B.json",
+  "butterfly",
+  "medium"
+ ],
+ [
+  "03-C.json",
+  "butterfly",
+  "medium"
+ ],
+ [
+  "03-D.json",
+  "sun",
+  "medium"
+ ],
+ [
+  "03-E.json",
+  "army ant",
+  "medium"
+ ],
+ [
+  "03-F.json",
+  "money bag",
+  "medium"
+ ],
+ [
+  "03-G.json",
+  "kappa",
+  "medium"
+ ],
+ [
+  "03-H.json",
+  "iguana",
+  "medium"
+ ],
+ [
+  "03-I.json",
+  "mr. germ",
+  "medium"
+ ],
+ [
+  "03-J.json",
+  "mouse",
+  "medium"
+ ],
+ [
+  "03-K.json",
+  "bat",
+  "medium"
+ ],
+ [
+  "03-L.json",
+  "skunk",
+  "medium"
+ ],
+ [
+  "04-A.json",
+  "old man",
+  "medium"
+ ],
+ [
+  "04-B.json",
+  "faucet",
+  "medium"
+ ],
+ [
+  "04-C.json",
+  "flying carpet",
   "medium"
  ],
  [
@@ -20,8 +200,53 @@
   "medium"
  ],
  [
+  "04-E.json",
+  "tadpole",
+  "medium"
+ ],
+ [
+  "04-F.json",
+  "see-no-evil monkey",
+  "medium"
+ ],
+ [
+  "04-G.json",
+  "hitting a baseball",
+  "medium"
+ ],
+ [
+  "04-H.json",
+  "speak-no-evil monkey",
+  "medium"
+ ],
+ [
+  "04-I.json",
+  "hippo",
+  "medium"
+ ],
+ [
   "04-J.json",
   "tiger",
+  "hard"
+ ],
+ [
+  "04-K.json",
+  "hear-no-evil monkey",
+  "medium"
+ ],
+ [
+  "04-L.json",
+  "ghost doll",
+  "medium"
+ ],
+ [
+  "05-A.json",
+  "shogi",
+  "hard"
+ ],
+ [
+  "05-B.json",
+  "owl",
   "hard"
  ],
  [
@@ -30,13 +255,288 @@
   "hard"
  ],
  [
+  "05-D.json",
+  "television",
+  "hard"
+ ],
+ [
   "05-E.json",
-  "man with pipe",
+  "pipe-smoking man",
+  "hard"
+ ],
+ [
+  "05-F.json",
+  "flamingo",
+  "hard"
+ ],
+ [
+  "05-G.json",
+  "catfish",
+  "hard"
+ ],
+ [
+  "05-H.json",
+  "roast chicken",
+  "hard"
+ ],
+ [
+  "05-I.json",
+  "monkey",
+  "hard"
+ ],
+ [
+  "05-J.json",
+  "dodo",
+  "hard"
+ ],
+ [
+  "05-K.json",
+  "grim reaper",
+  "hard"
+ ],
+ [
+  "05-L.json",
+  "the scream",
+  "hard"
+ ],
+ [
+  "06-A.json",
+  "tea",
+  "hard"
+ ],
+ [
+  "06-B.json",
+  "queen",
+  "hard"
+ ],
+ [
+  "06-C.json",
+  "raccoon",
+  "hard"
+ ],
+ [
+  "06-D.json",
+  "fishbone",
+  "hard"
+ ],
+ [
+  "06-E.json",
+  "jizo statue",
+  "hard"
+ ],
+ [
+  "06-F.json",
+  "panda's face",
+  "hard"
+ ],
+ [
+  "06-G.json",
+  "pig incense burner",
+  "hard"
+ ],
+ [
+  "06-H.json",
+  "hill myna",
+  "hard"
+ ],
+ [
+  "06-I.json",
+  "crescent moon",
+  "hard"
+ ],
+ [
+  "06-J.json",
+  "mole",
+  "hard"
+ ],
+ [
+  "06-K.json",
+  "hurdle",
+  "hard"
+ ],
+ [
+  "06-L.json",
+  "conductor",
+  "hard"
+ ],
+ [
+  "07-A.json",
+  "tyrannosaurus",
+  "hard"
+ ],
+ [
+  "07-B.json",
+  "crocodile",
+  "hard"
+ ],
+ [
+  "07-C.json",
+  "ostrich",
+  "hard"
+ ],
+ [
+  "07-D.json",
+  "viking",
+  "hard"
+ ],
+ [
+  "07-E.json",
+  "witch",
+  "hard"
+ ],
+ [
+  "07-F.json",
+  "pegasus",
+  "hard"
+ ],
+ [
+  "07-G.json",
+  "the americas",
+  "hard"
+ ],
+ [
+  "07-H.json",
+  "lakitu",
+  "hard"
+ ],
+ [
+  "07-I.json",
+  "parent and child turtle",
+  "hard"
+ ],
+ [
+  "07-J.json",
+  "pinwheel (wario land)",
+  "hard"
+ ],
+ [
+  "07-K.json",
+  "buffalo",
+  "hard"
+ ],
+ [
+  "07-L.json",
+  "piggy bank",
+  "hard"
+ ],
+ [
+  "08-A.json",
+  "heavy metal",
+  "hard"
+ ],
+ [
+  "08-B.json",
+  "chicken",
+  "hard"
+ ],
+ [
+  "08-C.json",
+  "poorly drawn dog",
   "hard"
  ],
  [
   "08-D.json",
   "clown",
+  "hard"
+ ],
+ [
+  "08-E.json",
+  "maizou (wario land)",
+  "hard"
+ ],
+ [
+  "08-F.json",
+  "tanuki",
+  "hard"
+ ],
+ [
+  "08-G.json",
+  "daily commuters",
+  "hard"
+ ],
+ [
+  "08-H.json",
+  "squid",
+  "hard"
+ ],
+ [
+  "08-I.json",
+  "frog",
+  "hard"
+ ],
+ [
+  "08-J.json",
+  "knight (wario land)",
+  "hard"
+ ],
+ [
+  "08-K.json",
+  "goboten (wario land)",
+  "hard"
+ ],
+ [
+  "08-L.json",
+  "mountain gorilla",
+  "hard"
+ ],
+ [
+  "09-A.json",
+  "kintaro candy",
+  "hard"
+ ],
+ [
+  "09-B.json",
+  "octopus with a headband",
+  "hard"
+ ],
+ [
+  "09-C.json",
+  "alien",
+  "hard"
+ ],
+ [
+  "09-D.json",
+  "mountain climber",
+  "hard"
+ ],
+ [
+  "09-E.json",
+  "rock-paper-scissors",
+  "hard"
+ ],
+ [
+  "09-F.json",
+  "whale",
+  "hard"
+ ],
+ [
+  "09-G.json",
+  "toyama no kin-san",
+  "hard"
+ ],
+ [
+  "09-H.json",
+  "wanderin' goon (wario land)",
+  "hard"
+ ],
+ [
+  "09-I.json",
+  "giraffe",
+  "hard"
+ ],
+ [
+  "09-J.json",
+  "tiny wario",
+  "hard"
+ ],
+ [
+  "09-K.json",
+  "reindeers",
+  "hard"
+ ],
+ [
+  "09-L.json",
+  "ukiyo-e",
   "hard"
  ],
  [
@@ -57,6 +557,46 @@
  [
   "10-D.json",
   "cow",
+  "expert"
+ ],
+ [
+  "10-E.json",
+  "orca",
+  "expert"
+ ],
+ [
+  "10-F.json",
+  "bee",
+  "expert"
+ ],
+ [
+  "10-G.json",
+  "power shovel",
+  "expert"
+ ],
+ [
+  "10-H.json",
+  "large statue of buddha",
+  "expert"
+ ],
+ [
+  "10-I.json",
+  "sheep",
+  "expert"
+ ],
+ [
+  "10-J.json",
+  "scorpion",
+  "expert"
+ ],
+ [
+  "10-K.json",
+  "tuna",
+  "expert"
+ ],
+ [
+  "10-L.json",
+  "carriage",
   "expert"
  ],
  [
