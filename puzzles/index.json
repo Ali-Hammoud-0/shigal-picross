@@ -1,0 +1,67 @@
+[
+ [
+  "01-B.json",
+  "foot",
+  "easy"
+ ],
+ [
+  "01-D.json",
+  "baby monkey",
+  "easy"
+ ],
+ [
+  "01-K.json",
+  "parasol",
+  "medium"
+ ],
+ [
+  "04-D.json",
+  "pro wrestler",
+  "medium"
+ ],
+ [
+  "04-J.json",
+  "tiger",
+  "hard"
+ ],
+ [
+  "05-C.json",
+  "dinosaur",
+  "hard"
+ ],
+ [
+  "05-E.json",
+  "man with pipe",
+  "hard"
+ ],
+ [
+  "08-D.json",
+  "clown",
+  "hard"
+ ],
+ [
+  "10-A.json",
+  "porridge",
+  "expert"
+ ],
+ [
+  "10-B.json",
+  "car",
+  "expert"
+ ],
+ [
+  "10-C.json",
+  "bear",
+  "expert"
+ ],
+ [
+  "SP-A.json",
+  "ocean sunfish",
+  "expert"
+ ],
+ [
+  "SP-B.json",
+  "squirrel",
+  "expert"
+ ]
+]

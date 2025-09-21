@@ -1,7 +1,8 @@
 body {
+    overflow-x: auto;       
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: center;    /* keep centered */
     background: #201e1f;
     justify-content: center;
     font-family: "Courier New", Courier, monospace;
@@ -10,6 +11,9 @@ body {
 
 h1 {
     color: peru;
+    align-items: center;
+    text-align: center;
+    width: 100%;
 }
 
 button,
@@ -26,6 +30,7 @@ textarea {
     /* min-height: 80vh; */
     gap: 2rem;
     color: #f0f0f0;
+    
 }
 
 #left-panel {
@@ -93,7 +98,7 @@ textarea {
     }
 
     #right-panel {
-        width: 100%;
+        width: 50%;
         max-width: none;
         margin-top: 2rem;
     }
@@ -105,6 +110,7 @@ textarea {
     /* shrink-wrap to #game size */
     margin: 0.5rem auto;
     border-radius: 10px;
+    
 }
 
 #game {
@@ -131,7 +137,7 @@ textarea {
     pointer-events: none;
     border-radius: 10px;
 
-    /* Scanline effect (optional) */
+    /* scanline effect (optional) */
     background-image: linear-gradient(to bottom,
             rgba(0, 0, 0, 0.2) 0px,
             rgba(0, 0, 0, 0.2) 1px,
@@ -211,12 +217,6 @@ textarea {
     font-size: calc(var(--cell-size) * 0.6);
     /* 60% of cell size */
     line-height: 1;
-    /* background-image: linear-gradient(to bottom,
-            rgba(0, 0, 0, 0.2) 0px,
-            rgba(0, 0, 0, 0.2) 1px,
-            transparent 1px,
-            transparent 1px);
-    background-size: 100% 2px; */
 }
 
 .cell.clue.clue-marked {
@@ -260,13 +260,6 @@ textarea {
     /* prevent extra spacing */
     border-right: 3px solid rgba(0, 0, 0, 0.2);
     border-bottom: 3px solid rgba(0, 0, 0, 0.2);
-
-    /* background-image: linear-gradient(to bottom,
-            rgba(0, 0, 0, 0.2) 0px,
-            rgba(0, 0, 0, 0.2) 1px,
-            transparent 1px,
-            transparent 1px);
-    background-size: 100% 2px; */
 }
 
 .cell * {
@@ -283,13 +276,6 @@ textarea {
 
 .cell.filled {
     background: #1f1f1f;
-    /* background-image: linear-gradient(to bottom,
-            rgba(0, 0, 0, 0.4) 0px,
-            rgba(0, 0, 0, 0.4) 1px,
-            transparent 1px,
-            transparent 1px);
-    background-size: 100% 2px; */
-    /* font-size: calc(var(--cell-size) * 1.5); */
 
 }
 

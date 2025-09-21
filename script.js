@@ -1,9 +1,33 @@
 let cluesRow, cluesCol;
 let sizeX, sizeY;
 let grid;
+let puzzleList;
+let puzzleAnswer;
 
-
+function loadPuzzleList() {
+    // import puzzle list
+    fetch('puzzles/index.json')
+        .then(response => response.json())
+        .then(data => {
+            puzzleList = data;
+            console.log("puzzleList: " + puzzleList[1][0]);
+            let puzzleSelect = document.getElementById("puzzleSelect");
+            puzzleList.forEach((puzzle, i) => {
+                let newOption = document.createElement('option');
+                newOption.value = puzzle[0];
+                let puzzleName = puzzle[0].substring(0, puzzle[0].length - 5); //remove .json
+                if (puzzleName[0] == "0") {
+                    puzzleName = puzzleName.substring(1, puzzleName.length);
+                }
+                newOption.text = puzzleName;
+                puzzleSelect.appendChild(newOption);
+            });
+            loadPuzzle(puzzleList[0][0]);
+        })
+        .catch(err => console.error('Failed to load JSON:', err));
+}
 function loadPuzzle(selectedPuzzle) {
+    console.log("loading " + selectedPuzzle)
     // import puzzle
     fetch('puzzles/' + selectedPuzzle)
         .then(response => response.json())
@@ -27,8 +51,8 @@ function loadPuzzle(selectedPuzzle) {
         })
         .catch(err => console.error('Failed to load JSON:', err));
 }
-loadPuzzle('1b-foot.json');
-//
+loadPuzzleList();
+
 let numCluesPerCol = 0;
 let numCluesPerRow = 0;
 const gameEl = document.getElementById('game'); // div that holds the game
@@ -86,25 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     loadPuzzleBtn.addEventListener('click', () => {
         console.log(puzzleSelect.value);
-        if (puzzleSelect.value == 'easy') {
-            loadPuzzle('1b-foot.json')
-        }
-        else if (puzzleSelect.value == 'medium') {
-            loadPuzzle('1k-parasol.json')
-        }
-        else if (puzzleSelect.value == 'hard') {
-            loadPuzzle('5e-pipe-man.json')
-        }
-        else if (puzzleSelect.value == 'expert') {
-            loadPuzzle('10b-car.json')
-        }
-        else if (puzzleSelect.value == 'sp-a') {
-            loadPuzzle('sp-a.json')
-        }
+        loadPuzzle(puzzleSelect.value);
+        
     });
-    undoBtn.addEventListener('click', () => {
-        undoMove();
-    });
+    // undoBtn.addEventListener('click', () => {
+    //     undoMove();
+    // });
 
     sounds.fill.volume = 0;
     sounds.fill.play().then(() => {
