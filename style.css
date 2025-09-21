@@ -17,10 +17,6 @@ h1 {
     width: 100%;
 }
 
-#message {
-
-}
-
 button,
 select,
 input,
@@ -38,7 +34,6 @@ textarea {
     /* min-height: 80vh; */
     gap: 2rem;
     color: #f0f0f0;
-    min-height: 0;
 
 }
 
@@ -49,8 +44,6 @@ textarea {
     align-items: center;
     flex: 1;
     min-width: 300px;
-    width: 100%;
-    height: 100%;
 }
 
 #right-panel {
@@ -64,6 +57,12 @@ textarea {
     min-width: 200px;
     max-width: 300px;
     height: 100%;
+}
+
+#message {
+    display: block;
+    text-align: center;
+    width: 100%;
 }
 
 #right-panel button {
@@ -100,19 +99,6 @@ select {
     width: 100%;
 }
 
-.input-group select {
-    /* padding: 0.6rem 1rem; */
-
-    /* font-size: 1rem;
-    padding: 0.6rem 1rem;
-    outline: none;
-    height: 2.8rem;
-    border-right: none;
-    background-color: #f9f9f9;
-    color: #333;
-    width: 100%; */
-
-}
 
 /* Responsive tweaks */
 @media (max-width: 768px) {
@@ -124,7 +110,6 @@ select {
     #right-panel {
         width: 50%;
         max-width: none;
-        margin-top: 2rem;
     }
 }
 
@@ -135,7 +120,7 @@ select {
     position: relative;
     display: inline-block;
     /* shrink-wrap to #game size */
-    margin: 0.5rem auto;
+    /* margin: 0.5rem auto; */
     border-radius: 10px;
 
 }
@@ -152,24 +137,23 @@ select {
     grid-template-columns: repeat(var(--grid-size-x), var(--cell-size));
     grid-template-rows: repeat(var(--grid-size-y), var(--cell-size));
 
-    margin: 0.5rem auto;
+    /* margin: 0.5rem auto; */
     /* center horizontally, add breathing room */
 }
 
 #overlay {
     position: fixed;
-    inset: 0;              /* top:0; right:0; bottom:0; left:0; */
+    inset: 0;
+    /* top:0; right:0; bottom:0; left:0; */
     z-index: 9999;
     pointer-events: none;
-    background-image: linear-gradient(
-      to bottom,
-      rgba(0,0,0,0.2) 0px,
-      rgba(0,0,0,0.2) 1px,
-      transparent 1px,
-      transparent 4px
-    );
+    background-image: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.2) 0px,
+            rgba(0, 0, 0, 0.2) 1px,
+            transparent 1px,
+            transparent 4px);
     background-size: 100% 2px;
-  }
+}
 
 .winning-text {
     animation:
