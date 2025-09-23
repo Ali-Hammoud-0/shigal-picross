@@ -63,9 +63,25 @@ textarea {
     display: block;
     text-align: center;
     width: 100%;
+    user-select: none;
 }
 
 #right-panel button {
+    width: 100%;
+}
+
+#nextPuzzleBtn {
+    /* width: 50%; */
+    background: green;
+    display: none;
+    padding-left: 5em;
+    padding-right: 5em;
+    animation:
+        fadeInAfter 4s ease-in forwards;
+
+}
+
+button {
     padding: 0.6rem 1rem;
     background-color: #a1a1a1;
     border: none;
@@ -75,7 +91,13 @@ textarea {
     transition: background 0.1s;
     height: 2.7rem;
     justify-content: center;
-    width: 100%;
+}
+
+.disabled-btn {
+    pointer-events: none;
+    background-color: #a5a5a537;
+    color: rgba(255, 255, 255, 0.3);
+
 }
 
 #right-panel button:hover {
@@ -194,17 +216,17 @@ select {
     }
 }
 
-@keyframes glowGreen {
+@keyframes fadeInAfter {
     0% {
-        box-shadow: 0 0 0 green;
+        opacity: 0;
     }
 
     50% {
-        box-shadow: 0 0 8px 3px green;
+        opacity: 0;
     }
 
     100% {
-        box-shadow: 0 0 0 green;
+        opacity: 1;
     }
 }
 
@@ -266,6 +288,7 @@ select {
     /* prevent extra spacing */
     border-right: 3px solid rgba(0, 0, 0, 0.2);
     border-bottom: 3px solid rgba(0, 0, 0, 0.2);
+    user-select: none;
 }
 
 .cell * {

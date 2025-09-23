@@ -1,40 +1,75 @@
 let cluesRow, cluesCol;
 let sizeX, sizeY;
 let grid;
+let lastGrid;
+
 let puzzleList;
 let loadedPuzzle;
+let loadedDifficulty;
+let loadedPuzzleIndex;
+let loadedDifficultyIndex;
+let numPuzzleOptions;
+let numDifficultyOptions;
+let numCluesPerCol = 0;
+let numCluesPerRow = 0;
 
-function loadPuzzleList(isFirstLoad) {
+const gameEl = document.getElementById('game'); // div that holds the game
+const message = document.getElementById('message');
+// let isMouseDown = false;
+let gridValue = null;   //the next value to be filled in the grid (0, 1, or 2)
+let isWinner = false;
+let dragStart = null; // { r, c }
+let dragDirection = null; // 'horizontal' | 'vertical'
+let lastFilledCell = null;
+let lastR, lastC = null;
+let dragLock = true;
+let isMousePointer = null;
+let isMobileDragging = false;  //used to check if dragging in mobile
+const winStyle = document.createElement('style');
+
+
+
+function loadPuzzleList() {
     puzzleList = [];
-    puzzleSelect.innerHTML = '';
     // import puzzle list
     fetch('puzzles/index.json')
         .then(response => response.json())
         .then(data => {
             puzzleList = data;
             puzzleList.sort((a, b) => a[0] > b[0]);
-            let puzzleSelect = document.getElementById("puzzleSelect");
-            puzzleList.forEach((puzzle, i) => {
-                if (puzzle[2] == difficultySelect.value) {
-                    let newOption = document.createElement('option');
-                    newOption.value = puzzle[0];
-                    let puzzleName = puzzle[0].substring(0, puzzle[0].length - 5); //remove .json
-                    if (puzzleName[0] == "0") {
-                        puzzleName = puzzleName.substring(1, puzzleName.length);
-                    }
-                    newOption.text = puzzleName;
-                    puzzleSelect.appendChild(newOption);
-                }
-            });
-            if (isFirstLoad) {
-                loadPuzzle(puzzleList[0][0]);
-            }
+            populatePuzzleList(0, 0);
+            loadPuzzle(puzzleList[0][0]);
         })
         .catch(err => console.error('Failed to load JSON:', err));
 }
+
+function populatePuzzleList(selectedDifficultyIndex, selectedPuzzleIndex) {
+    puzzleSelect.innerHTML = '';
+    puzzleList.forEach((puzzle, i) => {
+        if (puzzle[2] == difficultySelect.options[selectedDifficultyIndex].value) {
+            let newOption = document.createElement('option');
+            newOption.value = puzzle[0];
+            let puzzleName = puzzle[0].substring(0, puzzle[0].length - 5); //remove .json
+            if (puzzleName[0] == "0") {
+                puzzleName = puzzleName.substring(1, puzzleName.length);
+            }
+            newOption.text = puzzleName;
+            puzzleSelect.appendChild(newOption);
+        }
+    });
+    difficultySelect.selectedIndex = selectedDifficultyIndex;
+    puzzleSelect.selectedIndex = selectedPuzzleIndex;
+}
+
+
 function loadPuzzle(selectedPuzzle) {
     console.log("loading " + selectedPuzzle);
     loadedPuzzle = selectedPuzzle;
+    loadedDifficulty = difficultySelect.value;
+    loadedPuzzleIndex = puzzleSelect.selectedIndex;
+    loadedDifficultyIndex = difficultySelect.selectedIndex;
+    numPuzzleOptions = puzzleSelect.length;
+    numDifficultyOptions = difficultySelect.length;
     // import puzzle
     fetch('puzzles/' + selectedPuzzle)
         .then(response => response.json())
@@ -43,43 +78,34 @@ function loadPuzzle(selectedPuzzle) {
             cluesCol = data.vClues;
             sizeX = updateNumClues(cluesCol)[0];
             sizeY = updateNumClues(cluesRow)[0];;
-            numCluesPerRow = updateNumClues(cluesRow)[1];
-            numCluesPerCol = updateNumClues(cluesCol)[1];
             // State: 0 empty, 1 filled, 2 marked
-            grid = Array.from({ length: sizeY }, () => Array(sizeX).fill(0));   // the main board
-            lastGrid = grid.slice();
-            gameEl.style.setProperty('--grid-size-x', sizeX + numCluesPerRow);
-            gameEl.style.setProperty('--grid-size-y', sizeY + numCluesPerCol);
-            winStyle.remove();
-            message.classList.remove('winning-text');
-            message.innerHTML = '';
-            winner = false;
-            renderGrid(cluesRow, cluesCol, sizeX, sizeY);
+            lastGrid = Array.from({ length: sizeY }, () => Array(sizeX).fill(0));   // the main board
+            resetSettings();
         })
         .catch(err => console.error('Failed to load JSON:', err));
 }
-loadPuzzleList(true);
+loadPuzzleList();
 
+function resetSettings() {
+    grid = Array.from({ length: sizeY }, () => Array(sizeX).fill(0));   // the main board
+    numCluesPerRow = updateNumClues(cluesRow)[1];
+    numCluesPerCol = updateNumClues(cluesCol)[1];
+    gameEl.style.setProperty('--grid-size-x', sizeX + numCluesPerRow);
+    gameEl.style.setProperty('--grid-size-y', sizeY + numCluesPerCol);
+    winStyle.remove();
+    nextPuzzleBtn.style.display = 'none';
+    message.classList.remove('winning-text');
+    clearPuzzleBtn.classList.remove('disabled-btn');
+    undoBtn.classList.remove('disabled-btn');
+    message.innerHTML = '';
+    isWinner = false;
+    renderGrid(cluesRow, cluesCol, sizeX, sizeY);
+}
 
-let numCluesPerCol = 0;
-let numCluesPerRow = 0;
-const gameEl = document.getElementById('game'); // div that holds the game
-const message = document.getElementById('message');
-let isMouseDown = false;
-let gridValue = null;   //the next value to be filled in the grid (0, 1, or 2)
-let winner = false;
-let lastGrid = null;
-let dragStart = null; // { r, c }
-let dragDirection = null; // 'horizontal' | 'vertical'
-let lastFilledCell = null;
-let lastR, lastC = null;
-let dragLock = true;
-let isMousePointer = null;
-const winStyle = document.createElement('style');
 
 
 document.addEventListener('pointerup', (e) => {
-    isMouseDown = false;
+    // isMouseDown = false;
     gridValue = null;
     dragStart = null;
     dragDirection = null;
@@ -97,11 +123,13 @@ sounds.fill.load(); // start loading immediately
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    const playMusicBtn = document.getElementById('playMusic');
-    const difficultySelect = document.getElementById('difficultySelect');
-    const puzzleSelect = document.getElementById('puzzleSelect');
-    const loadPuzzleBtn = document.getElementById('loadPuzzle');
-    const undoBtn = document.getElementById('undo');
+    // const playMusicBtn = document.getElementById('playMusicBtn');
+    // const difficultySelect = document.getElementById('difficultySelect');
+    // const puzzleSelect = document.getElementById('puzzleSelectBtn');
+    // const loadPuzzleBtn = document.getElementById('loadPuzzleBtn');
+    // const clearPuzzleBtn = document.getElementById('clearPuzzleBtn');
+    // const nextPuzzleBtn = document.getElementById('nextPuzzleBtn');
+    // const undoBtn = document.getElementById('undoBtn');
 
     playMusicBtn.addEventListener('click', () => {
         if (sounds.bgm1.paused) {
@@ -121,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     difficultySelect.addEventListener('change', () => {
         console.log("selected " + difficultySelect.value);
         // loadPuzzle();
-        loadPuzzleList(false);
+        populatePuzzleList(difficultySelect.selectedIndex, 0);
 
 
     });
@@ -129,9 +157,39 @@ document.addEventListener('DOMContentLoaded', () => {
         loadPuzzle(puzzleSelect.value);
 
     });
-    // undoBtn.addEventListener('click', () => {
-    //     undoMove();
-    // });
+    undoBtn.addEventListener('click', () => {
+        undoMove();
+    });
+
+    clearPuzzleBtn.addEventListener('click', () => {
+        if (isWinner) {
+            return;
+        }
+        for (let i = 0; i < grid.length; i++) {
+            lastGrid[i] = grid[i].slice();
+        }
+        resetSettings();
+    });
+
+    nextPuzzleBtn.addEventListener('click', () => {
+        let nextPuzzleIndex = loadedPuzzleIndex + 1;
+        let nextDifficultyIndex = loadedDifficultyIndex;
+        console.log(loadedDifficulty);
+        console.log("numPuzzleOptions: " + numPuzzleOptions);
+        if (nextPuzzleIndex >= numPuzzleOptions) {
+            nextDifficultyIndex = loadedDifficultyIndex + 1;
+            nextPuzzleIndex = 0;
+            console.log("thats all  folks");
+        }
+        console.log("next puzzle index: " + nextPuzzleIndex);
+        console.log("next difficulty index: " + nextDifficultyIndex);
+        populatePuzzleList(nextDifficultyIndex, nextPuzzleIndex);
+        nextPuzzleValue = puzzleSelect.options[nextPuzzleIndex].value
+        // console.log("next puzzle: " + nextPuzzleValue + "  index: " + nextPuzzleIndex);
+        // console.log("next difficulty: " + difficultySelect.options[nextDifficultyIndex].value + "  index: " + nextDifficultyIndex);
+        loadPuzzle(nextPuzzleValue);
+
+    });
 
     sounds.fill.volume = 0;
     sounds.fill.play().then(() => {
@@ -260,12 +318,16 @@ function addEventListeners(div, r, c) {
     div.addEventListener('mouseenter', (e) => handleCellMouseEnter(r, c, e));
     div.addEventListener('mouseleave', handleCellMouseLeave);
     div.addEventListener('pointerdown', (e) => handleCellMouseDown(r, c, e));
+    div.addEventListener('pointerup', (e) => handleMobileLeftClick(r, c, e));
     div.addEventListener('contextmenu', function (e) {
         e.preventDefault();
         // console.log('right click');
         handleMobileRightClick(r, c, e);
         return false;
     }, false);
+    div.addEventListener('mousemove', function (e) {
+        isMobileDragging = true;
+    });
     // div.addEventListener('contextmenu', e => e.preventDefault()); // stop right click menu
 }
 
@@ -335,11 +397,20 @@ function checkLine(i, isHorizontal) {
 
 
 function winrar() {
+    // the last puzzle has not been loaded, enable the 'next puzzle' button
+    console.log("winrar " + loadedPuzzleIndex + " " + loadedDifficultyIndex);
+    console.log("totals: " + numPuzzleOptions + " " + numDifficultyOptions);
+    if (loadedPuzzleIndex == numPuzzleOptions - 1 &&
+        loadedDifficultyIndex == numDifficultyOptions - 1) {
+        console.log("last puzzle solved");
+    }
+    else {
+        nextPuzzleBtn.style.display = 'block';
+    }
     // stopAllSounds();
     winStyle.innerHTML = `
   .clue {
-    animation: glowGreen 2s infinite forwards !important;
-    background-color: green !important;
+    background: green !important;
   }
   .cell {
     border: none !important;
@@ -356,7 +427,9 @@ function winrar() {
         }
     });
     message.classList.add('winning-text');
-    winner = true;
+    clearPuzzleBtn.classList.add('disabled-btn');
+    undoBtn.classList.add('disabled-btn');
+    isWinner = true;
     message.innerHTML = answer;
 }
 
@@ -375,11 +448,20 @@ function stopAllSounds() {
 
 function handleCellMouseDown(r, c, e) {
     isMousePointer = e.pointerType === "mouse";
-    if (winner == true) {
+    if (isWinner) {
+        return;
+    }
+    for (let i = 0; i < grid.length; i++) {
+        lastGrid[i] = grid[i].slice();
+    }
+    isMobileDragging = false;
+
+    //do not continue if on mobile - mobile clicks have their own functions
+    if (!isMousePointer) {
         return;
     }
     const cell = e.currentTarget;
-    isMouseDown = true;
+    // isMouseDown = true;
     if (e.button === 0) { // left click on tile
         gridValue = grid[r][c] === 1 ? 0 : 1;
     } else if (e.button === 2) { // right click on tile
@@ -388,6 +470,18 @@ function handleCellMouseDown(r, c, e) {
     dragStart = { r, c };
     dragDirection = null;
     toggleFill(r, c, cell);
+}
+
+function handleMobileLeftClick(r, c, e) {
+    if (isMobileDragging || isMousePointer) {
+        return;
+    }
+    const cell = e.currentTarget;
+    if (e.button === 0) { // left click on tile
+        gridValue = grid[r][c] === 1 ? 0 : 1;
+        toggleFill(r, c, cell);
+    }
+    console.log("mobile");
 }
 
 //only runs if its a touch right click event
@@ -401,7 +495,7 @@ function handleMobileRightClick(r, c, e) {
 }
 
 function handleCellMouseEnter(r, c, e) {
-    if (winner == true) {
+    if (isWinner) {
         return;
     }
     const cell = e.currentTarget;
@@ -469,7 +563,6 @@ function handleCellMouseLeave() {
 
 function toggleFill(r, c, cell) {
     // console.log(grid);
-    lastGrid = grid.slice();
     let rowToFill = r, colToFill = c;
     let isClue = cell.classList.contains('clue');
     if (cell.classList.contains('clue-empty')) {
@@ -597,7 +690,14 @@ function toggleFill(r, c, cell) {
 }
 
 function undoMove() {
+    if (isWinner) {
+        return;
+    }
     console.log(lastGrid);
-    grid = lastGrid;
+    for (let i = 0; i < grid.length; i++) {
+        let tempRow = grid[i];
+        grid[i] = lastGrid[i].slice();
+        lastGrid[i] = tempRow;
+    }
     renderGrid(cluesRow, cluesCol, sizeX, sizeY);
 }
