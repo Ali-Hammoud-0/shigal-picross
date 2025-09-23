@@ -113,13 +113,11 @@ document.addEventListener('pointerup', (e) => {
 });
 
 const sounds = {
-    fill: new Audio('assets/undo_1.wav'),
+    fill: new Audio('assets/fill_1.wav'),
     mark: new Audio('assets/mark_1.wav'),
     undo: new Audio('assets/undo_1.wav'),
     bgm1: new Audio('assets/bgm1.mp3')
 };
-sounds.fill.preload = 'auto'; // tell browser to load now
-sounds.fill.load(); // start loading immediately
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -189,15 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // console.log("next difficulty: " + difficultySelect.options[nextDifficultyIndex].value + "  index: " + nextDifficultyIndex);
         loadPuzzle(nextPuzzleValue);
 
-    });
-
-    sounds.fill.volume = 0;
-    sounds.fill.play().then(() => {
-        sounds.fill.pause();
-        sounds.fill.currentTime = 0;
-        sounds.fill.volume = 1; // reset volume
-    }).catch(() => {
-        // It's okay if this fails before interaction
     });
     loadPuzzleList();
 
