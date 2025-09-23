@@ -70,7 +70,7 @@ textarea {
     width: 100%;
 }
 
-#nextPuzzleBtn {
+#nextPuzzle {
     /* width: 50%; */
     background: green;
     display: none;
