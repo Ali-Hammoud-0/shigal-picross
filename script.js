@@ -113,7 +113,7 @@ document.addEventListener('pointerup', (e) => {
 });
 
 const sounds = {
-    fill: new Audio('assets/fill_1.wav'),
+    fill: new Audio('assets/undo_1.wav'),
     mark: new Audio('assets/mark_1.wav'),
     undo: new Audio('assets/undo_1.wav'),
     bgm1: new Audio('assets/bgm1.mp3')
