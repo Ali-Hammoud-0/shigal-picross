@@ -620,6 +620,7 @@ function toggleFill(r, c, cell) {
             if (gridValue === 2) {
                 sounds.mark.currentTime = 0;
                 sounds.mark.play();
+                checkIfWinner();
             }
         }
     }
