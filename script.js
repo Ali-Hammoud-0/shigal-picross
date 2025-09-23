@@ -27,6 +27,7 @@ let isMousePointer = null;
 let isMobileDragging = false;  //used to check if dragging in mobile
 const winStyle = document.createElement('style');
 
+let playMusicBtn, difficultySelect, puzzleSelect, loadPuzzleBtn, clearPuzzleBtn, nextPuzzleBtn, undoBtn;
 
 
 function loadPuzzleList() {
@@ -84,7 +85,6 @@ function loadPuzzle(selectedPuzzle) {
         })
         .catch(err => console.error('Failed to load JSON:', err));
 }
-loadPuzzleList();
 
 function resetSettings() {
     grid = Array.from({ length: sizeY }, () => Array(sizeX).fill(0));   // the main board
@@ -123,13 +123,13 @@ sounds.fill.load(); // start loading immediately
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // const playMusicBtn = document.getElementById('playMusicBtn');
-    // const difficultySelect = document.getElementById('difficultySelect');
-    // const puzzleSelect = document.getElementById('puzzleSelectBtn');
-    // const loadPuzzleBtn = document.getElementById('loadPuzzleBtn');
-    // const clearPuzzleBtn = document.getElementById('clearPuzzleBtn');
-    // const nextPuzzleBtn = document.getElementById('nextPuzzleBtn');
-    // const undoBtn = document.getElementById('undoBtn');
+    playMusicBtn = document.getElementById('playMusic');
+    difficultySelect = document.getElementById('difficulty');
+    puzzleSelect = document.getElementById('puzzle');
+    loadPuzzleBtn = document.getElementById('loadPuzzle');
+    clearPuzzleBtn = document.getElementById('clearPuzzle');
+    nextPuzzleBtn = document.getElementById('nextPuzzle');
+    undoBtn = document.getElementById('undo');
 
     playMusicBtn.addEventListener('click', () => {
         if (sounds.bgm1.paused) {
@@ -199,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(() => {
         // It's okay if this fails before interaction
     });
+    loadPuzzleList();
 
 });
 document.addEventListener('contextmenu', e => e.preventDefault()); // stop right click menu
