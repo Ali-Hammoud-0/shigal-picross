@@ -156,13 +156,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
     undoBtn.addEventListener('click', () => {
+        sounds.undo.currentTime = 0;
+        sounds.undo.play();
         undoMove();
     });
 
     clearPuzzleBtn.addEventListener('click', () => {
-        if (isWinner) {
-            return;
-        }
+        undo.fill.currentTime = 0;
+        undo.fill.play();
         for (let i = 0; i < grid.length; i++) {
             lastGrid[i] = grid[i].slice();
         }
