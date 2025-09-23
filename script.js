@@ -162,8 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     clearPuzzleBtn.addEventListener('click', () => {
-        undo.fill.currentTime = 0;
-        undo.fill.play();
+        sounds.undo.currentTime = 0;
+        sounds.undo.play();
         for (let i = 0; i < grid.length; i++) {
             lastGrid[i] = grid[i].slice();
         }
