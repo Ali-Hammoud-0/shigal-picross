@@ -352,8 +352,8 @@ function addEventListeners(div, r, c) {
     div.addEventListener('mouseleave', handleCellMouseLeave);
     div.addEventListener('pointerdown', (e) => handleCellMouseDown(r, c, e));
     div.addEventListener('pointerup', function (e) {
-        saveGame();
         handleMobileLeftClick(r, c, e);
+        saveGame();
     });
     div.addEventListener('contextmenu', function (e) {
         e.preventDefault();
