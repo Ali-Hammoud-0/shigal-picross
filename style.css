@@ -303,7 +303,7 @@ select {
 }
 
 .cell.filled {
-    background: #1f1f1f;
+    background: #404040;
 
 }
 
@@ -322,11 +322,11 @@ select {
 }
 
 .cell.highlight-row {
-    filter: brightness(1.1);
+    filter: brightness(1.2);
 }
 
 .cell.highlight-col {
-    filter: brightness(1.1);
+    filter: brightness(1.2);
 }
 
 .cell.clue.highlight-row {

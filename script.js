@@ -1,7 +1,14 @@
+//todo: 
+//create a transparent div slightly larger than the game. detect mouseenter events on it and clear highlights
+//optimization: reduce the number of times checkIfWinner is called - only checkCol and checkRow for the last filled column/row. save a boolean array of cols/cells to indicate if they are correct.
+//optimization: do not loop through all cells in a row/col each time when dragging to fill
 let cluesRow, cluesCol;
-let sizeX, sizeY;
+let numCols, numRows;
 let grid;
 let lastGrid;
+let lastCluesRow, lastCluesCol;
+let wasClueClickedLast = false;
+let wasGridCleared = false;
 
 let puzzleList;
 let loadedPuzzle;
@@ -15,7 +22,6 @@ let numCluesPerRow = 0;
 
 const gameEl = document.getElementById('game'); // div that holds the game
 const message = document.getElementById('message');
-// let isMouseDown = false;
 let gridValue = null;   //the next value to be filled in the grid (0, 1, or 2)
 let isWinner = false;
 let dragStart = null; // { r, c }
@@ -29,44 +35,35 @@ const winStyle = document.createElement('style');
 
 let playMusicBtn, difficultySelect, puzzleSelect, loadPuzzleBtn, clearPuzzleBtn, nextPuzzleBtn, undoBtn;
 
-function saveGame() {
-    try {
-        const saveData = {
-            grid,
-            cluesRow,
-            cluesCol,
-            sizeX,
-            sizeY,
-            loadedPuzzle,
-            loadedPuzzleIndex,
-            loadedDifficultyIndex,
-            lastGrid,
-            isWinner
-        };
-        localStorage.setItem('picross_save_' + loadedPuzzle, JSON.stringify(saveData));
-        localStorage.setItem('picross_last_difficulty_i', loadedDifficultyIndex);
-        localStorage.setItem('picross_last_puzzle_i', loadedPuzzleIndex);
-        localStorage.setItem('picross_last_puzzle', loadedPuzzle);
-
-        console.log('saved progress for', loadedPuzzle);
-    } catch (err) {
-        console.error('failed to save progress:', err);
-    }
-}
-
-function loadGame() {
-    try {
-        const raw = localStorage.getItem('picross_save_' + loadedPuzzle);
-        if (!raw) return null;
-        const rawObj = JSON.parse(raw);
-        console.log("savegame found");
-        grid = rawObj.grid;
-        lastGrid = rawObj.lastGrid;
-        renderGrid(rawObj.cluesRow, rawObj.cluesCol, rawObj.sizeX, rawObj.sizeY);
-        checkIfWinner();
-    } catch (err) {
-        console.error('failed to parse save for', loadedPuzzle, err);
-    }
+function loadPuzzle(selectedPuzzle) {
+    console.log("loading " + selectedPuzzle);
+    loadedPuzzle = selectedPuzzle;
+    loadedDifficulty = difficultySelect.value;
+    loadedPuzzleIndex = puzzleSelect.selectedIndex;
+    loadedDifficultyIndex = difficultySelect.selectedIndex;
+    numPuzzleOptions = puzzleSelect.length;
+    numDifficultyOptions = difficultySelect.length;
+    // import puzzle
+    fetch('puzzles/' + selectedPuzzle)
+        .then(response => response.json())
+        .then(data => {
+            cluesRow = data.hClues;
+            cluesCol = data.vClues;
+            let tempInfo = updateNumClues(cluesCol);
+            numCols = tempInfo[0];
+            numCluesPerCol = tempInfo[1];
+            tempInfo = updateNumClues(cluesRow)
+            numRows = tempInfo[0];;
+            numCluesPerRow = tempInfo[1];
+            // 2d array (numRows x numCols) that stores the last grid state. 0 is blank, 1 is filled, and 2 is marked
+            lastGrid = Array.from({ length: numRows }, () => Array(numCols).fill(0));   // the main board's undo state
+            lastCluesRow = JSON.parse(JSON.stringify(cluesRow));
+            lastCluesCol = JSON.parse(JSON.stringify(cluesCol));
+            resetSettings();
+            loadGame();
+            saveGame();
+        })
+        .catch(err => console.error('Failed to load JSON:', err));
 }
 
 function loadPuzzleList() {
@@ -95,6 +92,74 @@ function loadPuzzleList() {
         .catch(err => console.error('failed to load JSON:', err));
 }
 
+
+function saveGame() {
+    try {
+        const saveData = {
+            grid,
+            cluesRow,
+            cluesCol,
+            // numCols,
+            // numRows,
+            // loadedPuzzle,
+            // loadedPuzzleIndex,
+            // loadedDifficultyIndex,
+            lastGrid,
+            lastCluesRow,
+            lastCluesCol,
+            wasClueClickedLast,
+            wasGridCleared
+            // isWinner
+        };
+        localStorage.setItem('picross_save_' + loadedPuzzle, JSON.stringify(saveData));
+        localStorage.setItem('picross_last_difficulty_i', loadedDifficultyIndex);
+        localStorage.setItem('picross_last_puzzle_i', loadedPuzzleIndex);
+        localStorage.setItem('picross_last_puzzle', loadedPuzzle);
+
+        console.log('saved progress for', loadedPuzzle);
+    } catch (err) {
+        console.error('failed to save progress:', err);
+    }
+}
+
+function loadGame() {
+    try {
+        const raw = localStorage.getItem('picross_save_' + loadedPuzzle);
+        if (!raw) return null;
+        const rawObj = JSON.parse(raw);
+        console.log("savegame found");
+        grid = rawObj.grid;
+        lastGrid = rawObj.lastGrid;
+        lastCluesRow = rawObj.lastCluesRow;
+        lastCluesCol = rawObj.lastCluesCol;
+        cluesRow = rawObj.cluesRow;
+        cluesCol = rawObj.cluesCol;
+        wasClueClickedLast = rawObj.wasClueClickedLast;
+        wasGridCleared = rawObj.wasGridCleared;
+        renderGrid(cluesRow, cluesCol, numCols, numRows);
+        checkIfWinner();
+    } catch (err) {
+        console.error('failed to parse save for', loadedPuzzle, err);
+    }
+}
+
+
+function resetSettings() {
+    grid = Array.from({ length: numRows }, () => Array(numCols).fill(0));   // the main board
+    clearCluesArr(cluesRow);
+    clearCluesArr(cluesCol);
+    gameEl.style.setProperty('--grid-size-x', numCols + numCluesPerRow);
+    gameEl.style.setProperty('--grid-size-y', numRows + numCluesPerCol);
+    winStyle.remove();
+    nextPuzzleBtn.style.display = 'none';
+    message.classList.remove('winning-text');
+    clearPuzzleBtn.classList.remove('disabled-btn');
+    undoBtn.classList.remove('disabled-btn');
+    message.innerHTML = '';
+    isWinner = false;
+    renderGrid(cluesRow, cluesCol, numCols, numRows);
+}
+
 function populatePuzzleList(selectedDifficultyIndex, selectedPuzzleIndex) {
     puzzleSelect.innerHTML = '';
     puzzleList.forEach((puzzle, i) => {
@@ -119,50 +184,6 @@ function populatePuzzleList(selectedDifficultyIndex, selectedPuzzleIndex) {
     puzzleSelect.selectedIndex = selectedPuzzleIndex;
 }
 
-
-function loadPuzzle(selectedPuzzle) {
-    console.log("loading " + selectedPuzzle);
-    loadedPuzzle = selectedPuzzle;
-    loadedDifficulty = difficultySelect.value;
-    loadedPuzzleIndex = puzzleSelect.selectedIndex;
-    loadedDifficultyIndex = difficultySelect.selectedIndex;
-    numPuzzleOptions = puzzleSelect.length;
-    numDifficultyOptions = difficultySelect.length;
-    // import puzzle
-    fetch('puzzles/' + selectedPuzzle)
-        .then(response => response.json())
-        .then(data => {
-            cluesRow = data.hClues;
-            cluesCol = data.vClues;
-            sizeX = updateNumClues(cluesCol)[0];
-            sizeY = updateNumClues(cluesRow)[0];;
-            // state: 0 empty, 1 filled, 2 marked
-            lastGrid = Array.from({ length: sizeY }, () => Array(sizeX).fill(0));   // the main board
-            resetSettings();
-            loadGame();
-            saveGame();
-        })
-        .catch(err => console.error('Failed to load JSON:', err));
-}
-
-function resetSettings() {
-    grid = Array.from({ length: sizeY }, () => Array(sizeX).fill(0));   // the main board
-    numCluesPerRow = updateNumClues(cluesRow)[1];
-    numCluesPerCol = updateNumClues(cluesCol)[1];
-    gameEl.style.setProperty('--grid-size-x', sizeX + numCluesPerRow);
-    gameEl.style.setProperty('--grid-size-y', sizeY + numCluesPerCol);
-    winStyle.remove();
-    nextPuzzleBtn.style.display = 'none';
-    message.classList.remove('winning-text');
-    clearPuzzleBtn.classList.remove('disabled-btn');
-    undoBtn.classList.remove('disabled-btn');
-    message.innerHTML = '';
-    isWinner = false;
-    renderGrid(cluesRow, cluesCol, sizeX, sizeY);
-}
-
-
-
 document.addEventListener('pointerup', (e) => {
     gridValue = null;
     dragStart = null;
@@ -170,13 +191,13 @@ document.addEventListener('pointerup', (e) => {
     lastFilledCell = null;
 });
 
+
 const sounds = {
     fill: new Audio('assets/fill_1.wav'),
     mark: new Audio('assets/mark_1.wav'),
     undo: new Audio('assets/undo_1.wav'),
     bgm1: new Audio('assets/bgm1.mp3')
 };
-
 
 document.addEventListener('DOMContentLoaded', () => {
     playMusicBtn = document.getElementById('playMusic');
@@ -218,11 +239,15 @@ document.addEventListener('DOMContentLoaded', () => {
     clearPuzzleBtn.addEventListener('click', () => {
         sounds.undo.currentTime = 0;
         sounds.undo.play();
+        // copy values of grid, cluesRow, and cluesCol before modifying them (used for undo)
         for (let i = 0; i < grid.length; i++) {
             lastGrid[i] = grid[i].slice();
         }
+        lastCluesRow = JSON.parse(JSON.stringify(cluesRow));
+        lastCluesCol = JSON.parse(JSON.stringify(cluesCol));
         resetSettings();
         saveGame();
+        wasGridCleared = true;
     });
 
     nextPuzzleBtn.addEventListener('click', () => {
@@ -246,8 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 document.addEventListener('contextmenu', e => e.preventDefault()); // stop right click menu
-
-//gets called once for width and once for height
+//cluesArr is either cluesRow or cluesCol
+//this function returns [numCols/numRows, numCluesPerRow/numcluesPerCol]
 function updateNumClues(cluesArr) {
     puzzleInfo = [] //puzzleInfo[0] = size, [1] = max amount of clues
     puzzleInfo.push(cluesArr.length)
@@ -265,7 +290,16 @@ function updateNumClues(cluesArr) {
     return puzzleInfo;
 }
 
-function renderGrid(cluesRow, cluesCol, sizeX, sizeY) {
+//this function resets all values in cluesRow/cluesCol so that they are not filled
+function clearCluesArr(cluesArr) {
+    cluesArr.forEach((subarray, r) => {
+        subarray.forEach((clue) => {
+            clue[1] = 0;
+        });
+    });
+}
+
+function renderGrid(cluesRow, cluesCol, numCols, numRows) {
     gameEl.innerHTML = '';
     // print clues above grid rows
     // use reverse order to fill bottom clues first
@@ -277,7 +311,7 @@ function renderGrid(cluesRow, cluesCol, sizeX, sizeY) {
             gameEl.appendChild(emptyDiv);
         }
         //put clues above grid
-        for (let c = 0; c < sizeX; c++) {
+        for (let c = 0; c < numCols; c++) {
             if (c < cluesCol.length) {
                 renderClues(r, c, false);   // render vertical clues
             }
@@ -349,7 +383,8 @@ function renderClues(r, c, isHorizontal) {
 
 function addEventListeners(div, r, c) {
     div.addEventListener('mouseenter', (e) => handleCellMouseEnter(r, c, e));
-    div.addEventListener('mouseleave', handleCellMouseLeave);
+    div.addEventListener('mouseleave', (e) => handleCellMouseLeave(r, c, e));
+    // div.addEventListener('mouseleave', handleCellMouseLeave);
     div.addEventListener('pointerdown', (e) => handleCellMouseDown(r, c, e));
     div.addEventListener('pointerup', function (e) {
         handleMobileLeftClick(r, c, e);
@@ -369,9 +404,9 @@ function addEventListeners(div, r, c) {
 function checkIfWinner() {
     //check rows first, break if one does not match
     for (let r = 0; r < grid.length; r++) {
-        console.log('checking row ' + r)
+        // console.log('checking row ' + r)
         if (!checkLine(r, true)) {
-            console.log('stopping the search, row ' + r + ' failed.');
+            // console.log('stopping the search, row ' + r + ' failed.');
             return;
         }
     }
@@ -379,13 +414,13 @@ function checkIfWinner() {
 
     //check cols second, break if one does not match
     for (let c = 0; c < grid[0].length; c++) {
-        console.log('checking col ' + c)
+        // console.log('checking col ' + c)
         if (!checkLine(c, false)) {
-            console.log('stopping the search, col ' + c + ' failed.');
+            // console.log('stopping the search, col ' + c + ' failed.');
             return;
         }
     }
-    console.log('all rows and cols passed!!!');
+    // console.log('all rows and cols passed!!!');
     winrar();
 
 }
@@ -406,7 +441,7 @@ function checkLine(i, isHorizontal) {
             lineString += grid[r][i];
         }
     }
-    console.log(lineString);
+    // console.log(lineString);
     // get runs of consecutive 1s
     let runs = lineString.match(/1+/g)?.map(run => run.length) || [];
     // check if it's a 0 clue first
@@ -482,29 +517,55 @@ function stopAllSounds() {
 }
 
 function handleCellMouseDown(r, c, e) {
+    const cell = e.currentTarget;
+    let isClueCell = cell.classList.contains('clue');
     isMousePointer = e.pointerType === "mouse";
     if (isWinner) {
         return;
     }
-    for (let i = 0; i < grid.length; i++) {
-        lastGrid[i] = grid[i].slice();
+    // update lastGrid (undo state) only if the last filled cell was not a clue
+    if (!isClueCell) {
+        for (let i = 0; i < grid.length; i++) {
+            lastGrid[i] = grid[i].slice();
+        }
+    }
+    // update lastClues (undo state) only if the last filled was not on the gril
+    else {
+        lastCluesRow = JSON.parse(JSON.stringify(cluesRow));
+        lastCluesCol = JSON.parse(JSON.stringify(cluesCol));
     }
     isMobileDragging = false;
 
     //do not continue if on mobile - mobile clicks have their own functions
     if (!isMousePointer) {
+        //highlight cell as soon as user touches the screen
+        highlightCells(r, c, cell);
         return;
     }
-    const cell = e.currentTarget;
-    // isMouseDown = true;
-    if (e.button === 0) { // left click on tile
+    if (e.button === 0 && !isClueCell) { // left click on tile
         gridValue = grid[r][c] === 1 ? 0 : 1;
-    } else if (e.button === 2) { // right click on tile
+    } else if (e.button === 2 && !isClueCell) { // right click on tile
         gridValue = grid[r][c] === 2 ? 0 : 2;
+    }
+    // if its a clue, the gridValue will be the opposite of the clue's current value
+    else if (isClueCell) {
+        if (cell.classList.contains('clue-col')) {
+            subgridSize = cluesCol[c].length;
+            const itemFromTop = subgridSize - r - 1;
+            const currentValue = cluesCol[c][itemFromTop][1];
+            gridValue = currentValue === 1 ? 0 : 1; // set new drag value
+        }
+        else if (cell.classList.contains('clue-row')) {
+            subgridSize = cluesRow[r].length;
+            const itemFromRight = subgridSize - c - 1;
+            const currentValue = cluesRow[r][itemFromRight][1];
+            gridValue = currentValue === 1 ? 0 : 1; // set new drag value
+        }
     }
     dragStart = { r, c };
     dragDirection = null;
     toggleFill(r, c, cell);
+
 }
 
 function handleMobileLeftClick(r, c, e) {
@@ -557,19 +618,25 @@ function handleCellMouseEnter(r, c, e) {
         // only fill if aligned with the locked axis
         if ((dragDirection === 'vertical') ||
             (dragDirection === 'horizontal')) {
+            // console.log("mouseenter!");
             toggleFill(r, c, cell);
         }
-    };
+    }
+    else {
+        //for mouse - highlight cell on every mouseEnter event if nothing is clicked
+        highlightCells(r, c, cell);
+    }
+}
 
-
-
+function highlightCells(r, c, cell) {
     // clear previous highlights
-    document.querySelectorAll('.highlight-row, .highlight-col')
-        .forEach(el => el.classList.remove('highlight-row', 'highlight-col'));
+    clearHighlights();
+    const totalCols = numCols + numCluesPerRow;
+    const totalRows = numRows + numCluesPerCol;
 
-    const totalCols = sizeX + numCluesPerRow;
-    const totalRows = sizeY + numCluesPerCol;
-
+    if (isWinner) {
+        return;
+    }
     // highlight the row (including clue tiles)
     if (!cell.classList.contains('clue-col')) {
         for (let col = 0; col < totalCols; col++) {
@@ -589,16 +656,22 @@ function handleCellMouseEnter(r, c, e) {
     }
 }
 
-function handleCellMouseLeave() {
-    // clear highlights when leaving the grid
+function clearHighlights() {
     document.querySelectorAll('.highlight-row, .highlight-col')
         .forEach(el => el.classList.remove('highlight-row', 'highlight-col'));
+}
+
+function handleCellMouseLeave(r, c, e) {
+    // console.log("mouseleave");
+    // clear highlights when leaving the grid
+    clearHighlights();
 }
 
 function toggleFill(r, c, cell) {
     let rowToFill = r, colToFill = c;
     let isClue = cell.classList.contains('clue');
     if (cell.classList.contains('clue-empty')) {
+        highlightCells(rowToFill, colToFill, cell);
         return;
     }
     if (lastFilledCell != null) {
@@ -606,6 +679,7 @@ function toggleFill(r, c, cell) {
             !isClue) ||
             (!lastFilledCell.classList.contains('clue') &&
                 isClue)) {
+            highlightCells(rowToFill, colToFill, cell);
             return;
         }
     }
@@ -614,31 +688,33 @@ function toggleFill(r, c, cell) {
             if (dragLock && dragDirection === 'horizontal') {
                 if (dragStart.c < lastC) {
                     for (let iC = dragStart.c; iC < lastC; iC++) {
-                        // console.log("iR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
+                        console.log("hiR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
                         grid[dragStart.r][iC] = gridValue;
                     }
                 }
                 else {
                     for (let iC = dragStart.c; iC > lastC; iC--) {
-                        // console.log("iR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
+                        console.log("hiR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
                         grid[dragStart.r][iC] = gridValue;
                     }
                 }
-
                 rowToFill = dragStart.r;
             }
             else if (dragLock && dragDirection === 'vertical') {
+                console.log("draglocktime " + r);
                 if (dragStart.r < lastR) {
                     for (let iR = dragStart.r; iR < lastR; iR++) {
-                        // console.log("iR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
+                        console.log("viR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
                         grid[iR][dragStart.c] = gridValue;
                     }
+                    // dragStart.r += 1;
                 }
                 else {
                     for (let iR = dragStart.r; iR > lastR; iR--) {
-                        // console.log("iR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
+                        console.log("viR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
                         grid[iR][dragStart.c] = gridValue;
                     }
+                    // dragStart.r -= 1;
                 }
                 colToFill = dragStart.c;
             }
@@ -646,6 +722,8 @@ function toggleFill(r, c, cell) {
     }
 
     if (!cell.classList.contains('clue')) {
+        wasClueClickedLast = false;
+        wasGridCleared = false;
         const oldValue = grid[rowToFill][colToFill];
         grid[rowToFill][colToFill] = gridValue;
         if (grid[rowToFill][colToFill] !== oldValue) {
@@ -664,66 +742,70 @@ function toggleFill(r, c, cell) {
                 sounds.mark.play();
                 checkIfWinner();
             }
+            renderGrid(cluesRow, cluesCol, numCols, numRows);
         }
     }
     else {
         // handle clue cells with drag support
+        wasClueClickedLast = true;
+        wasGridCleared = false;
+
         if (cell.classList.contains('clue-col')) {
             // determine the target column
-            const colIndex = c;
-
-            // if this is the first clue cell in the drag, decide the new value
-            if (lastFilledCell == null || !lastFilledCell.classList.contains('clue-col')) {
-                subgridSize = cluesCol[colIndex].length;
-                const itemFromTop = subgridSize - r - 1;
-                const currentValue = cluesCol[colIndex][itemFromTop][1];
-                gridValue = currentValue === 1 ? 0 : 1; // set new drag value
-            }
-
-            subgridSize = cluesCol[colIndex].length;
+            subgridSize = cluesCol[c].length;
             const itemFromTop = subgridSize - r - 1;
 
-            const oldValue = cluesCol[colIndex][itemFromTop][1];
-            cluesCol[colIndex][itemFromTop][1] = gridValue;
-            if (cluesCol[colIndex][itemFromTop][1] !== oldValue) {
+            const oldValue = cluesCol[c][itemFromTop][1];
+            cluesCol[c][itemFromTop][1] = gridValue;
+            if (cluesCol[c][itemFromTop][1] !== oldValue) {
                 sounds.fill.currentTime = 0;
                 sounds.fill.play();
+                renderGrid(cluesRow, cluesCol, numCols, numRows);
             }
         }
         else if (cell.classList.contains('clue-row')) {
             // determine the target row
-            const rowIndex = r;
-
-            // if this is the first clue cell in the drag, decide the new value
-            if (lastFilledCell == null || !lastFilledCell.classList.contains('clue-row')) {
-                subgridSize = cluesRow[rowIndex].length;
-                const itemFromRight = subgridSize - c - 1;
-                const currentValue = cluesRow[rowIndex][itemFromRight][1];
-                gridValue = currentValue === 1 ? 0 : 1; // set new drag value
-            }
-            subgridSize = cluesRow[rowIndex].length;
+            subgridSize = cluesRow[r].length;
             const itemFromRight = subgridSize - c - 1;
-            const oldValue = cluesRow[rowIndex][itemFromRight][1];
-            cluesRow[rowIndex][itemFromRight][1] = gridValue;
-            if (cluesRow[rowIndex][itemFromRight][1] !== oldValue) {
+            const oldValue = cluesRow[r][itemFromRight][1];
+            cluesRow[r][itemFromRight][1] = gridValue;
+            if (cluesRow[r][itemFromRight][1] !== oldValue) {
                 sounds.fill.currentTime = 0;
                 sounds.fill.play();
+                renderGrid(cluesRow, cluesCol, numCols, numRows);
             }
         }
     }
     lastR = r;
     lastC = c;
     lastFilledCell = cell;
-    renderGrid(cluesRow, cluesCol, sizeX, sizeY);
+    // renderGrid(cluesRow, cluesCol, numCols, numRows);
+    //highlight cells filled in current row/col
+    highlightCells(rowToFill, colToFill, cell);
 }
 
 function undoMove() {
-    // console.log(lastGrid);
-    for (let i = 0; i < grid.length; i++) {
-        let tempRow = grid[i];
-        grid[i] = lastGrid[i].slice();
-        lastGrid[i] = tempRow;
+    //if the grid was cleared, undo last clue and grid move
+    //otherwise just undo one 
+    console.log("was grid cleared: " + wasGridCleared);
+    if (wasClueClickedLast || wasGridCleared) {
+        console.log("restoring clues");
+        tempCluesRow = JSON.parse(JSON.stringify(cluesRow));
+        cluesRow = JSON.parse(JSON.stringify(lastCluesRow));
+        lastCluesRow = tempCluesRow;
+        tempCluesCol = JSON.parse(JSON.stringify(cluesCol));
+        cluesCol = JSON.parse(JSON.stringify(lastCluesCol));
+        lastCluesCol = tempCluesCol;
     }
-    renderGrid(cluesRow, cluesCol, sizeX, sizeY);
+    if (!wasClueClickedLast || wasGridCleared) {
+        console.log("restoring grid");
+        for (let i = 0; i < grid.length; i++) {
+            let tempRow = grid[i];
+            grid[i] = lastGrid[i].slice();
+            lastGrid[i] = tempRow;
+        }
+    }
+
+    renderGrid(cluesRow, cluesCol, numCols, numRows);
     saveGame();
 }
