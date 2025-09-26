@@ -331,6 +331,8 @@ function renderGrid(cluesRow, cluesCol, numCols, numRows) {
                         toggleBtnMode = 1;
                         toggleBtn.innerHTML = "✏️";
                     }
+                    sounds.fill.currentTime = 0;
+                    sounds.fill.play();
                     // console.log(toggleBtnMode);
                 });
             }
@@ -620,18 +622,7 @@ function handleCellMouseDown(r, c, e) {
     }
     // if its a clue, the gridValue will be the opposite of the clue's current value
     else if (isClueCell) {
-        if (cell.classList.contains('clue-col')) {
-            subgridSize = cluesCol[c].length;
-            const itemFromTop = subgridSize - r - 1;
-            const currentValue = cluesCol[c][itemFromTop][1];
-            gridValue = currentValue === 1 ? 0 : 1; // set new drag value
-        }
-        else if (cell.classList.contains('clue-row')) {
-            subgridSize = cluesRow[r].length;
-            const itemFromRight = subgridSize - c - 1;
-            const currentValue = cluesRow[r][itemFromRight][1];
-            gridValue = currentValue === 1 ? 0 : 1; // set new drag value
-        }
+        setGridValueForClueCell(r, c, cell);
     }
     dragStart = { r: r, c: c, lastR: null, lastC: null };
     dragDirection = null;
@@ -639,24 +630,53 @@ function handleCellMouseDown(r, c, e) {
 
 }
 
+function setGridValueForClueCell(r, c, cell) {
+    if (cell.classList.contains('clue-col')) {
+        subgridSize = cluesCol[c].length;
+        const itemFromTop = subgridSize - r - 1;
+        const currentValue = cluesCol[c][itemFromTop][1];
+        gridValue = currentValue === 1 ? 0 : 1; // set new drag value
+    }
+    else if (cell.classList.contains('clue-row')) {
+        subgridSize = cluesRow[r].length;
+        const itemFromRight = subgridSize - c - 1;
+        const currentValue = cluesRow[r][itemFromRight][1];
+        gridValue = currentValue === 1 ? 0 : 1; // set new drag value
+    }
+}
+
 function handleMobileLeftClick(r, c, e) {
+    const cell = e.currentTarget;
+    let isClueCell = cell.classList.contains('clue');
     if (isMobileDragging || isMousePointer) {
         return;
     }
-    const cell = e.currentTarget;
-    if (e.button === 0) { // left click on tile
-        gridValue = grid[r][c] === toggleBtnMode ? 0 : toggleBtnMode;
-        toggleFill(r, c, cell);
+    if (isClueCell) {
+        setGridValueForClueCell(r, c, cell);
     }
+    else if (e.button === 0) { // left click on tile
+        if (!isClueCell) {
+            gridValue = grid[r][c] === toggleBtnMode ? 0 : toggleBtnMode;
+        }
+        else {
+            gridValue = grid[r][c] === toggleBtnMode ? 0 : toggleBtnMode;
+        }
+
+    }
+    toggleFill(r, c, cell);
     // console.log("mobile");
 }
 
 //only runs if its a touch right click event
 function handleMobileRightClick(r, c, e) {
+    const cell = e.currentTarget;
+    let isClueCell = cell.classList.contains('clue');
     if (!isMousePointer) {
-        const cell = e.currentTarget;
+        if (isClueCell) {
+            setGridValueForClueCell(r, c, cell);
+        }
         // console.log("its a touchscreen");
-        if (toggleBtnMode == 1) {
+        else if (toggleBtnMode == 1) {
             gridValue = grid[r][c] === 2 ? 0 : 2;
         }
         else if (toggleBtnMode == 2) {
