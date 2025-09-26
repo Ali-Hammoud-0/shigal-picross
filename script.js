@@ -1,7 +1,3 @@
-//todo: 
-//create a transparent div slightly larger than the game. detect mouseenter events on it and clear highlights
-//optimization: reduce the number of times checkIfWinner is called - only checkCol and checkRow for the last filled column/row. save a boolean array of cols/cells to indicate if they are correct.
-//optimization: do not loop through all cells in a row/col each time when dragging to fill
 let cluesRow, cluesCol;
 let numCols, numRows;
 let grid;
@@ -24,16 +20,45 @@ const gameEl = document.getElementById('game'); // div that holds the game
 const message = document.getElementById('message');
 let gridValue = null;   //the next value to be filled in the grid (0, 1, or 2)
 let isWinner = false;
+let matchedRows, matchedCols;
+
 let dragStart = null; // { r, c }
 let dragDirection = null; // 'horizontal' | 'vertical'
 let lastFilledCell = null;
-let lastR, lastC = null;
 let dragLock = true;
 let isMousePointer = null;
 let isMobileDragging = false;  //used to check if dragging in mobile
+//1 - left click defaults to fill. 2 - left click defaults to mark.
+let toggleBtnMode = 1;
 const winStyle = document.createElement('style');
 
 let playMusicBtn, difficultySelect, puzzleSelect, loadPuzzleBtn, clearPuzzleBtn, nextPuzzleBtn, undoBtn;
+
+function loadPuzzleList() {
+    puzzleList = [];
+    // import puzzle list
+    fetch('puzzles/index.json')
+        .then(response => response.json())
+        .then(data => {
+            puzzleList = data;
+            puzzleList.sort((a, b) => a[0] > b[0]);
+            loadedDifficultyIndex = localStorage.getItem('picross_last_difficulty_i');
+            loadedPuzzleIndex = localStorage.getItem('picross_last_puzzle_i');
+            loadedPuzzle = localStorage.getItem('picross_last_puzzle');
+
+            if (!loadedDifficultyIndex || !loadedPuzzleIndex || !loadedPuzzle) {
+                console.log("last  loaded puzzle not found. loading first puzzle");
+                populatePuzzleList(0, 0);
+                loadPuzzle(puzzleList[0][0]);
+            }
+            else {
+                console.log("last loaded puzzle found: " + loadedDifficultyIndex + " " + loadedPuzzleIndex);
+                populatePuzzleList(loadedDifficultyIndex, loadedPuzzleIndex);
+                loadPuzzle(loadedPuzzle);
+            }
+        })
+        .catch(err => console.error('failed to load JSON:', err));
+}
 
 function loadPuzzle(selectedPuzzle) {
     console.log("loading " + selectedPuzzle);
@@ -66,31 +91,6 @@ function loadPuzzle(selectedPuzzle) {
         .catch(err => console.error('Failed to load JSON:', err));
 }
 
-function loadPuzzleList() {
-    puzzleList = [];
-    // import puzzle list
-    fetch('puzzles/index.json')
-        .then(response => response.json())
-        .then(data => {
-            puzzleList = data;
-            puzzleList.sort((a, b) => a[0] > b[0]);
-            loadedDifficultyIndex = localStorage.getItem('picross_last_difficulty_i');
-            loadedPuzzleIndex = localStorage.getItem('picross_last_puzzle_i');
-            loadedPuzzle = localStorage.getItem('picross_last_puzzle');
-
-            if (!loadedDifficultyIndex || !loadedPuzzleIndex || !loadedPuzzle) {
-                console.log("last  loaded puzzle not found. loading first puzzle");
-                populatePuzzleList(0, 0);
-                loadPuzzle(puzzleList[0][0]);
-            }
-            else {
-                console.log("last loaded puzzle found: " + loadedDifficultyIndex + " " + loadedPuzzleIndex);
-                populatePuzzleList(loadedDifficultyIndex, loadedPuzzleIndex);
-                loadPuzzle(loadedPuzzle);
-            }
-        })
-        .catch(err => console.error('failed to load JSON:', err));
-}
 
 
 function saveGame() {
@@ -137,7 +137,7 @@ function loadGame() {
         wasClueClickedLast = rawObj.wasClueClickedLast;
         wasGridCleared = rawObj.wasGridCleared;
         renderGrid(cluesRow, cluesCol, numCols, numRows);
-        checkIfWinner();
+        checkIfWinner(-1, -1);
     } catch (err) {
         console.error('failed to parse save for', loadedPuzzle, err);
     }
@@ -145,6 +145,8 @@ function loadGame() {
 
 
 function resetSettings() {
+    matchedRows = null;
+    matchedCols = null;
     grid = Array.from({ length: numRows }, () => Array(numCols).fill(0));   // the main board
     clearCluesArr(cluesRow);
     clearCluesArr(cluesCol);
@@ -212,15 +214,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sounds.bgm1.paused) {
             sounds.bgm1.loop = true;
             sounds.bgm1.play();
-            playMusicBtn.innerHTML = '⏹ music'
+            playMusicBtn.innerHTML = '<i class="fa-solid fa-stop"></i>music'
         }
         else {
             sounds.bgm1.pause();
-            playMusicBtn.innerHTML = '▶ music'
+            playMusicBtn.innerHTML = '<i class="fa-solid fa-play"></i>music'
         }
 
 
     });
+
     difficultySelect.addEventListener('change', () => {
         populatePuzzleList(difficultySelect.selectedIndex, 0);
 
@@ -258,12 +261,9 @@ document.addEventListener('DOMContentLoaded', () => {
             nextDifficultyIndex = loadedDifficultyIndex + 1;
             nextPuzzleIndex = 0;
         }
-        // console.log("next puzzle index: " + nextPuzzleIndex);
-        // console.log("next difficulty index: " + nextDifficultyIndex);
+
         populatePuzzleList(nextDifficultyIndex, nextPuzzleIndex);
         nextPuzzleValue = puzzleSelect.options[nextPuzzleIndex].value
-        // console.log("next puzzle: " + nextPuzzleValue + "  index: " + nextPuzzleIndex);
-        // console.log("next difficulty: " + difficultySelect.options[nextDifficultyIndex].value + "  index: " + nextDifficultyIndex);
         loadPuzzle(nextPuzzleValue);
 
     });
@@ -306,9 +306,41 @@ function renderGrid(cluesRow, cluesCol, numCols, numRows) {
     for (let r = numCluesPerCol - 1; r >= 0; r--) {
         //put empty squares in top-left corner
         for (let c = 0; c < numCluesPerRow; c++) {
-            const emptyDiv = document.createElement('div');
-            emptyDiv.classList.add('empty');
-            gameEl.appendChild(emptyDiv);
+            if (r == 0 && c == numCluesPerRow - 1) {
+                let toggleBtn = document.createElement('div');
+                if (numCluesPerRow == 1) {
+                    toggleBtn.style.width = "90%";
+                    toggleBtn.style.marginLeft = "0%";
+
+                }
+                toggleBtn.id = "toggle";
+                if (toggleBtnMode == 1) {
+                    toggleBtn.innerHTML = "✏️";
+                }
+                else {
+                    toggleBtnMode = 2;
+                    toggleBtn.innerHTML = "❌";
+                }
+                gameEl.appendChild(toggleBtn);
+                toggleBtn.addEventListener('click', () => {
+                    if (toggleBtnMode == 1) {
+                        toggleBtnMode = 2;
+                        toggleBtn.innerHTML = "❌";
+                    }
+                    else {
+                        toggleBtnMode = 1;
+                        toggleBtn.innerHTML = "✏️";
+                    }
+                    // console.log(toggleBtnMode);
+                });
+            }
+
+            else {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.classList.add('empty');
+                gameEl.appendChild(emptyDiv);
+            }
+
         }
         //put clues above grid
         for (let c = 0; c < numCols; c++) {
@@ -392,7 +424,6 @@ function addEventListeners(div, r, c) {
     });
     div.addEventListener('contextmenu', function (e) {
         e.preventDefault();
-        // console.log('right click');
         handleMobileRightClick(r, c, e);
         return false;
     }, false);
@@ -401,26 +432,62 @@ function addEventListeners(div, r, c) {
     });
 }
 
-function checkIfWinner() {
-    //check rows first, break if one does not match
-    for (let r = 0; r < grid.length; r++) {
-        // console.log('checking row ' + r)
-        if (!checkLine(r, true)) {
-            // console.log('stopping the search, row ' + r + ' failed.');
+//if matchedRows or matchedCols is null, check all rows and columns (only do this on load)
+//otherwise, only check that row and column for matches and update matchRows and matchCols
+//if all matchRows and matchCols are true, it's a winner
+function checkIfWinner(rowNumToCheck, colNumToCheck) {
+    if (rowNumToCheck === -1 || colNumToCheck === -1 ||
+        matchedRows == null || matchedCols == null) {
+        console.log("CHECKING ALL ROWS AND COLUMNS");
+        matchedRows = new Array(numRows).fill(false);
+        matchedCols = new Array(numCols).fill(false);
+        //check rows first
+        for (let r = 0; r < numRows; r++) {
+            if (checkLine(r, true)) {
+                matchedRows[r] = true;
+            }
+        }
+
+        //check cols second
+        for (let c = 0; c < numCols; c++) {
+            if (checkLine(c, false)) {
+                matchedCols[c] = true;
+            }
+        }
+    }
+
+    //if just one cell was filled, only need to check that row/col
+    else {
+        matchedRows[rowNumToCheck] = checkLine(rowNumToCheck, true);
+        matchedCols[colNumToCheck] = checkLine(colNumToCheck, false);
+    }
+
+
+
+    console.log("MATCHCHECK");
+
+    //check if all rows and cols match
+    //check rows first
+    for (let r = 0; r < numRows; r++) {
+        console.log('checking row ' + r)
+        if (matchedRows[r] === false) {
+            console.log('stopping the search, row ' + r + ' failed.');
+            console.log(matchedRows);
             return;
         }
     }
     console.log('all rows passed!!!');
 
-    //check cols second, break if one does not match
-    for (let c = 0; c < grid[0].length; c++) {
-        // console.log('checking col ' + c)
-        if (!checkLine(c, false)) {
-            // console.log('stopping the search, col ' + c + ' failed.');
+    //check cols second
+    for (let c = 0; c < numCols; c++) {
+        console.log('checking col ' + c)
+        if (matchedCols[c] === false) {
+            console.log('stopping the search, col ' + c + ' failed.');
+            console.log(matchedCols);
             return;
         }
     }
-    // console.log('all rows and cols passed!!!');
+    console.log('all rows and cols passed!!!');
     winrar();
 
 }
@@ -431,13 +498,13 @@ function checkLine(i, isHorizontal) {
     let cluesArr;
     if (isHorizontal) {
         cluesArr = cluesRow;
-        for (let c = 0; c < grid[i].length; c++) {
+        for (let c = 0; c < numCols; c++) {
             lineString += grid[i][c];
         }
     }
     else {
         cluesArr = cluesCol;
-        for (let r = 0; r < grid.length; r++) {
+        for (let r = 0; r < numRows; r++) {
             lineString += grid[r][i];
         }
     }
@@ -490,7 +557,6 @@ function winrar() {
     puzzleList.forEach((puzzle, i) => {
         if (puzzle[0] == loadedPuzzle) {
             answer = puzzle[1];
-            console.log("answer: " + puzzle[1]);
         }
     });
     message.classList.add('winning-text');
@@ -543,9 +609,14 @@ function handleCellMouseDown(r, c, e) {
         return;
     }
     if (e.button === 0 && !isClueCell) { // left click on tile
-        gridValue = grid[r][c] === 1 ? 0 : 1;
+        gridValue = grid[r][c] === toggleBtnMode ? 0 : toggleBtnMode;
     } else if (e.button === 2 && !isClueCell) { // right click on tile
-        gridValue = grid[r][c] === 2 ? 0 : 2;
+        if (toggleBtnMode == 1) {
+            gridValue = grid[r][c] === 2 ? 0 : 2;
+        }
+        else {
+            gridValue = grid[r][c] === 1 ? 0 : 1;
+        }
     }
     // if its a clue, the gridValue will be the opposite of the clue's current value
     else if (isClueCell) {
@@ -562,7 +633,7 @@ function handleCellMouseDown(r, c, e) {
             gridValue = currentValue === 1 ? 0 : 1; // set new drag value
         }
     }
-    dragStart = { r, c };
+    dragStart = { r: r, c: c, lastR: null, lastC: null };
     dragDirection = null;
     toggleFill(r, c, cell);
 
@@ -574,7 +645,7 @@ function handleMobileLeftClick(r, c, e) {
     }
     const cell = e.currentTarget;
     if (e.button === 0) { // left click on tile
-        gridValue = grid[r][c] === 1 ? 0 : 1;
+        gridValue = grid[r][c] === toggleBtnMode ? 0 : toggleBtnMode;
         toggleFill(r, c, cell);
     }
     // console.log("mobile");
@@ -585,7 +656,12 @@ function handleMobileRightClick(r, c, e) {
     if (!isMousePointer) {
         const cell = e.currentTarget;
         // console.log("its a touchscreen");
-        gridValue = grid[r][c] === 2 ? 0 : 2;
+        if (toggleBtnMode == 1) {
+            gridValue = grid[r][c] === 2 ? 0 : 2;
+        }
+        else if (toggleBtnMode == 2) {
+            gridValue = grid[r][c] === 1 ? 0 : 1;
+        }
         toggleFill(r, c, cell);
     }
 }
@@ -611,14 +687,9 @@ function handleCellMouseEnter(r, c, e) {
             }
         }
 
-        // console.log('dragDirection: ' + dragDirection);
-        // console.log('dragStart.c: ' + dragStart.c);
-        // console.log('dragStart.r: ' + dragStart.r);
-
         // only fill if aligned with the locked axis
         if ((dragDirection === 'vertical') ||
             (dragDirection === 'horizontal')) {
-            // console.log("mouseenter!");
             toggleFill(r, c, cell);
         }
     }
@@ -662,7 +733,6 @@ function clearHighlights() {
 }
 
 function handleCellMouseLeave(r, c, e) {
-    // console.log("mouseleave");
     // clear highlights when leaving the grid
     clearHighlights();
 }
@@ -670,10 +740,12 @@ function handleCellMouseLeave(r, c, e) {
 function toggleFill(r, c, cell) {
     let rowToFill = r, colToFill = c;
     let isClue = cell.classList.contains('clue');
+    //return if entering from an empty cell
     if (cell.classList.contains('clue-empty')) {
         highlightCells(rowToFill, colToFill, cell);
         return;
     }
+    //return if crossing the grid/clue border
     if (lastFilledCell != null) {
         if ((lastFilledCell.classList.contains('clue') &&
             !isClue) ||
@@ -683,67 +755,78 @@ function toggleFill(r, c, cell) {
             return;
         }
     }
+    // grid draglock logic - lock to the horizontal or vertical row based on movement
     if (lastFilledCell != null) {
         if (!lastFilledCell.classList.contains('clue')) {
             if (dragLock && dragDirection === 'horizontal') {
-                if (dragStart.c < lastC) {
-                    for (let iC = dragStart.c; iC < lastC; iC++) {
-                        console.log("hiR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
+                rowToFill = dragStart.r;
+                // return if old value is same as new value
+                if (grid[rowToFill][colToFill] == gridValue) {
+                    highlightCells(rowToFill, colToFill, cell);
+                    return;
+                }
+                if (dragStart.c < colToFill) {
+                    // fill in row from last filled column -> current cell
+                    for (let iC = dragStart.lastC; iC < colToFill; iC++) {
                         grid[dragStart.r][iC] = gridValue;
+                        checkIfWinner(dragStart.r, iC);
                     }
                 }
                 else {
-                    for (let iC = dragStart.c; iC > lastC; iC--) {
-                        console.log("hiR: " + dragStart.r + "  iC: " + iC + "  gridVal: " + gridValue);
+                    // fill in row from last filled column -> current cell
+                    for (let iC = dragStart.lastC; iC > colToFill; iC--) {
                         grid[dragStart.r][iC] = gridValue;
+                        checkIfWinner(dragStart.r, iC);
                     }
                 }
-                rowToFill = dragStart.r;
             }
             else if (dragLock && dragDirection === 'vertical') {
-                console.log("draglocktime " + r);
-                if (dragStart.r < lastR) {
-                    for (let iR = dragStart.r; iR < lastR; iR++) {
-                        console.log("viR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
+                colToFill = dragStart.c;
+                // return if old value is same as new value
+                if (grid[rowToFill][colToFill] == gridValue) {
+                    highlightCells(rowToFill, colToFill, cell);
+                    return;
+                }
+                if (dragStart.r < rowToFill) {
+                    // fill in column from last filled row -> current cell
+                    for (let iR = dragStart.lastR; iR < rowToFill; iR++) {
                         grid[iR][dragStart.c] = gridValue;
+                        checkIfWinner(iR, dragStart.c);
                     }
-                    // dragStart.r += 1;
                 }
                 else {
-                    for (let iR = dragStart.r; iR > lastR; iR--) {
-                        console.log("viR: " + iR + "  iC: " + dragStart.c + "  gridVal: " + gridValue);
+                    // fill in column from last filled row -> current cell
+                    for (let iR = dragStart.lastR; iR > rowToFill; iR--) {
                         grid[iR][dragStart.c] = gridValue;
+                        checkIfWinner(iR, dragStart.c);
                     }
-                    // dragStart.r -= 1;
                 }
-                colToFill = dragStart.c;
             }
         }
     }
 
+    //grid fill logic
     if (!cell.classList.contains('clue')) {
         wasClueClickedLast = false;
         wasGridCleared = false;
-        const oldValue = grid[rowToFill][colToFill];
         grid[rowToFill][colToFill] = gridValue;
-        if (grid[rowToFill][colToFill] !== oldValue) {
-            if (gridValue === 1) {
-                sounds.fill.currentTime = 0;
-                sounds.fill.play();
-                checkIfWinner();
-            }
-            if (gridValue === 0) {
-                sounds.undo.currentTime = 0;
-                sounds.undo.play();
-                checkIfWinner();
-            }
-            if (gridValue === 2) {
-                sounds.mark.currentTime = 0;
-                sounds.mark.play();
-                checkIfWinner();
-            }
-            renderGrid(cluesRow, cluesCol, numCols, numRows);
+        dragStart.lastC = colToFill;
+        dragStart.lastR = rowToFill;
+        if (gridValue === 1) {
+            sounds.fill.currentTime = 0;
+            sounds.fill.play();
         }
+        if (gridValue === 0) {
+            sounds.undo.currentTime = 0;
+            sounds.undo.play();
+        }
+        if (gridValue === 2) {
+            sounds.mark.currentTime = 0;
+            sounds.mark.play();
+        }
+        checkIfWinner(rowToFill, colToFill);
+        renderGrid(cluesRow, cluesCol, numCols, numRows);
+
     }
     else {
         // handle clue cells with drag support
@@ -776,18 +859,14 @@ function toggleFill(r, c, cell) {
             }
         }
     }
-    lastR = r;
-    lastC = c;
     lastFilledCell = cell;
-    // renderGrid(cluesRow, cluesCol, numCols, numRows);
-    //highlight cells filled in current row/col
     highlightCells(rowToFill, colToFill, cell);
 }
 
 function undoMove() {
     //if the grid was cleared, undo last clue and grid move
     //otherwise just undo one 
-    console.log("was grid cleared: " + wasGridCleared);
+    // console.log("was grid cleared: " + wasGridCleared);
     if (wasClueClickedLast || wasGridCleared) {
         console.log("restoring clues");
         tempCluesRow = JSON.parse(JSON.stringify(cluesRow));
@@ -805,7 +884,6 @@ function undoMove() {
             lastGrid[i] = tempRow;
         }
     }
-
     renderGrid(cluesRow, cluesCol, numCols, numRows);
     saveGame();
 }

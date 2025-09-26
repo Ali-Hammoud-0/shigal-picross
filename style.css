@@ -15,6 +15,7 @@ h1 {
     align-items: center;
     text-align: center;
     width: 100%;
+    user-select: none;
 }
 
 button,
@@ -23,8 +24,17 @@ input,
 textarea {
     font-family: inherit;
 }
-
+/* #wackybtn {
+    
+}
+#wackybtncontainer {
+    position: absolute;
+    background-color: yellow;
+    height: 30px;
+    width: 100%;
+} */
 #container {
+    /* position: relative; */
     /* overflow-x: auto; */
     display: flex;
     justify-content: center;
@@ -33,7 +43,7 @@ textarea {
     /* don’t let flexbox squeeze it */
     /* min-height: 80vh; */
     gap: 2rem;
-    color: #f0f0f0;
+    /* color: #f0f0f0; */
 }
 
 #left-panel {
@@ -90,6 +100,10 @@ button {
     transition: background 0.1s;
     height: 2.7rem;
     justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    /* space between icon and text */
 }
 
 .disabled-btn {
@@ -126,6 +140,7 @@ select {
     #container {
         flex-direction: column;
         align-items: center;
+        gap: 5px;
     }
 
     #right-panel {
@@ -255,7 +270,37 @@ select {
     visibility: hidden;
 }
 
+#toggle {
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    /* padding: 0.6rem 1rem; */
+    margin-left: -100%;
+    border-top-left-radius: 5px;
+    grid-column: span;
+    width: 190%; 
+    height: 90%;
+    background-color: #a1a1a1;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    /* gap: 15px; */
+    /* space between icon and text */
+    /* background: #0008ffea; */
+}
 
+#toggle:hover {
+    background-color: #bebebe;     /* slightly darker on hover */
+}
+
+#toggle:active {
+    background-color: #818181;     /* darker on click */
+    transform: scale(0.97);        /* pressed-in effect */
+}
 
 .cell.clue-col.clue-empty {
     cursor: auto;
