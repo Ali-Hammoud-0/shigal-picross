@@ -108,8 +108,8 @@ function saveGame() {
             lastCluesRow,
             lastCluesCol,
             wasClueClickedLast,
-            wasGridCleared
-            // isWinner
+            wasGridCleared,
+            isWinner
         };
         localStorage.setItem('picross_save_' + loadedPuzzle, JSON.stringify(saveData));
         localStorage.setItem('picross_last_difficulty_i', loadedDifficultyIndex);
