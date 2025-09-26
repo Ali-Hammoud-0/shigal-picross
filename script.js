@@ -648,7 +648,7 @@ function setGridValueForClueCell(r, c, cell) {
 function handleMobileLeftClick(r, c, e) {
     const cell = e.currentTarget;
     let isClueCell = cell.classList.contains('clue');
-    if (isMobileDragging || isMousePointer) {
+    if (isMobileDragging || isMousePointer || isWinner) {
         return;
     }
     if (isClueCell) {
@@ -671,6 +671,9 @@ function handleMobileLeftClick(r, c, e) {
 function handleMobileRightClick(r, c, e) {
     const cell = e.currentTarget;
     let isClueCell = cell.classList.contains('clue');
+    if (isWinner) {
+        return;
+    }
     if (!isMousePointer) {
         if (isClueCell) {
             setGridValueForClueCell(r, c, cell);
