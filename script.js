@@ -810,8 +810,10 @@ function toggleFill(r, c, cell) {
         wasClueClickedLast = false;
         wasGridCleared = false;
         grid[rowToFill][colToFill] = gridValue;
-        dragStart.lastC = colToFill;
-        dragStart.lastR = rowToFill;
+        if (isMousePointer) {
+            dragStart.lastC = colToFill;
+            dragStart.lastR = rowToFill;
+        }
         if (gridValue === 1) {
             sounds.fill.currentTime = 0;
             sounds.fill.play();
